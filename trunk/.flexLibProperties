@@ -1,29 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties version="1">
   <includeClasses>
-    <classEntry path="com.nbilyk.display.BetterFormItem"/>
-    <classEntry path="com.nbilyk.display.CSSComponent"/>
-    <classEntry path="com.nbilyk.display.CSSImage"/>
-    <classEntry path="com.nbilyk.display.CSSText"/>
-    <classEntry path="com.nbilyk.display.GradientCanvas"/>
-    <classEntry path="com.nbilyk.formatters.DateFormatter"/>
-    <classEntry path="com.nbilyk.logging.ArrayTarget"/>
-    <classEntry path="com.nbilyk.sharedobject.AbstractPersistantData"/>
     <classEntry path="com.nbilyk.utils.ComponentUtil"/>
-    <classEntry path="com.nbilyk.utils.CoordMath"/>
-    <classEntry path="com.nbilyk.utils.DateUtils"/>
-    <classEntry path="com.nbilyk.utils.DeferredFunctionCall"/>
+    <classEntry path="com.nbilyk.sharedobject.AbstractPersistantData"/>
     <classEntry path="com.nbilyk.utils.EventQueue"/>
+    <classEntry path="com.nbilyk.utils.DateUtils"/>
+    <classEntry path="com.nbilyk.display.CSSText"/>
+    <classEntry path="com.nbilyk.display.CSSComponent"/>
+    <classEntry path="com.nbilyk.display.BetterFormItem"/>
+    <classEntry path="com.nbilyk.utils.StyleUtil"/>
+    <classEntry path="com.nbilyk.display.CSSImage"/>
+    <classEntry path="com.nbilyk.utils.DeferredFunctionCall"/>
+    <classEntry path="com.nbilyk.logging.ArrayTarget"/>
+    <classEntry path="com.nbilyk.utils.StringUtils"/>
     <classEntry path="com.nbilyk.utils.FunctionUtils"/>
+    <classEntry path="com.nbilyk.utils.CoordMath"/>
+    <classEntry path="com.nbilyk.utils.MathUtils"/>
+    <classEntry path="com.nbilyk.display.MessageNotifier"/>
+    <classEntry path="com.nbilyk.validators.URLValidator"/>
+    <classEntry path="com.nbilyk.utils.QueuedURLLoaderEvent"/>
+    <classEntry path="com.nbilyk.utils.ObjectUtils"/>
+    <classEntry path="com.nbilyk.display.GradientCanvas"/>
     <classEntry path="com.nbilyk.utils.KineticScrollManager"/>
     <classEntry path="com.nbilyk.utils.LoaderQueue"/>
-    <classEntry path="com.nbilyk.utils.MathUtils"/>
-    <classEntry path="com.nbilyk.utils.ObjectUtils"/>
     <classEntry path="com.nbilyk.utils.QueuedEvent"/>
-    <classEntry path="com.nbilyk.utils.QueuedURLLoaderEvent"/>
-    <classEntry path="com.nbilyk.utils.StringUtils"/>
-    <classEntry path="com.nbilyk.utils.StyleUtil"/>
-    <classEntry path="com.nbilyk.validators.URLValidator"/>
+    <classEntry path="com.nbilyk.formatters.DateFormatter"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>
