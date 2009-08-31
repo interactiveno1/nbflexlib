@@ -36,13 +36,12 @@ package com.nbilyk.display {
 			if (styleName) {
 				css = StyleManager.getStyleDeclaration("." + styleName);
 				if (css) return css.getStyle(styleProp);
-			} else {
-				for each (var c:String in classInheritance) {
-					var css:CSSStyleDeclaration = StyleManager.getStyleDeclaration(c);
-					if (css) {
-						style = css.getStyle(styleProp);
-						if (style) return style;
-					}
+			}
+			for each (var c:String in classInheritance) {
+				var css:CSSStyleDeclaration = StyleManager.getStyleDeclaration(c);
+				if (css) {
+					style = css.getStyle(styleProp);
+					if (style) return style;
 				}
 			}
 			return null;
