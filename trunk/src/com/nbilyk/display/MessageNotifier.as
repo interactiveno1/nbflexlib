@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2009 Nicholas Bilyk
+ */
+
 package com.nbilyk.display {
 	import com.nbilyk.utils.EventQueue;
 	import com.nbilyk.utils.QueuedEvent;
@@ -61,7 +65,8 @@ package com.nbilyk.display {
 					this.paddingTop = 10;
 					this.paddingRight = 10;
 					this.paddingBottom = 10;
-					this.messageStyleName = "messageStyle82"
+					this.messageStyleName = "messageStyle82";
+					this.errorMessageStyleName = "errorMessageStyle82";
 				}
 				StyleManager.setStyleDeclaration("MessageNotifier", messageNotifierCss, true);
 				
@@ -78,6 +83,21 @@ package com.nbilyk.display {
 					this.fontWeight = "bold";
 				}
 				StyleManager.setStyleDeclaration(".messageStyle82", messageCss, true);
+				
+				var errorMessageCss:CSSStyleDeclaration = new CSSStyleDeclaration(".errorMessageStyle82");
+				errorMessageCss.defaultFactory = function():void {
+					this.paddingLeft = 3;
+					this.paddingTop = 3;
+					this.paddingRight = 3;
+					this.paddingBottom = 3;
+					this.borderStyle = "solid";
+					this.borderThickness = 2;
+					this.cornerRadius = 8;
+					this.backgroundColor = 0xFFFFFF;
+					this.fontWeight = "bold";
+					this.color = 0xFF0000;
+				}
+				StyleManager.setStyleDeclaration(".errorMessageStyle82", errorMessageCss, true);
 			}
 		}
 		
@@ -92,12 +112,12 @@ package com.nbilyk.display {
 			text.percentWidth = 100;
 			var hBox:HBox = new HBox();
 			hBox.addChild(text);
-			hBox.styleName = getStyle("messageStyleName");
+			hBox.styleName = (isError) ? getStyle("errorMessageStyleName") : getStyle("messageStyleName");
 			hBox.includeInLayout = false;
 			hBox.setStyle("left", paddingLeft);
 			hBox.setStyle("right", paddingRight);
 			
-			if (duration == -1) duration = Math.max(message.length / 30 * 1000, 4500);
+			if (duration == -1) duration = Math.min(15000, Math.max(message.length / 30 * 1000, 4500));
 			showComponent(hBox, duration, priority);
 		}
 		public function showComponent(component:UIComponent, duration:int = 4500, priority:int = 0):void {
@@ -110,7 +130,6 @@ package com.nbilyk.display {
 				app.callLater(doShowComponent, [component, duration]);
 				return;
 			}
-			trace(component.measuredHeight);
 			refreshComponent(component);
 			
 			var showEffect:IEffect = IEffect(getStyle("showEffect"));
