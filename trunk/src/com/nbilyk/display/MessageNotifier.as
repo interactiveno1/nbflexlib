@@ -7,9 +7,12 @@ package com.nbilyk.display {
 	import com.nbilyk.utils.QueuedEvent;
 	
 	import flash.events.Event;
+	import flash.events.MouseEvent;
+	import flash.utils.clearTimeout;
 	import flash.utils.setTimeout;
 	
 	import mx.containers.HBox;
+	import mx.controls.Text;
 	import mx.core.Application;
 	import mx.core.UIComponent;
 	import mx.effects.IEffect;
@@ -30,7 +33,7 @@ package com.nbilyk.display {
 	[Effect(name="hideEffect", event="hide")]
 	public class MessageNotifier extends CSSComponent {
 		public static const TOP:uint = 0;
-		public static const BOTTOM:uint = 0;
+		public static const BOTTOM:uint = 1;
 		
 		private var eventQueue:EventQueue = new EventQueue();
 		private var location:uint;
@@ -42,6 +45,10 @@ package com.nbilyk.display {
 		
 		private var defaultShowEffect:Move;
 		private var defaultHideEffect:Move;
+		
+		private var componentHideTimeout:int;
+		[ArrayElementType("flash.filters.BitmapFilter")]
+		public var messageFilters:Array = [];
 		
 		public function MessageNotifier(locationVal:uint = TOP) {
 			super();
@@ -67,6 +74,7 @@ package com.nbilyk.display {
 					this.paddingBottom = 10;
 					this.messageStyleName = "messageStyle82";
 					this.errorMessageStyleName = "errorMessageStyle82";
+					this.closeButtonStyleName = "messageNotifierCloseButton82";
 				}
 				StyleManager.setStyleDeclaration("MessageNotifier", messageNotifierCss, true);
 				
@@ -101,23 +109,33 @@ package com.nbilyk.display {
 			}
 		}
 		
-		public function showMessage(message:String, isError:Boolean = false, duration:int = -1, priority:int = 0):void {
+		public function showMessage(message:String, isError:Boolean = false, duration:int = -1, priority:int = 0, clickToClose:Boolean = true):void {
 			paddingLeft = Number(getStyle("paddingLeft"));
 			paddingTop = Number(getStyle("paddingTop"));
 			paddingRight = Number(getStyle("paddingRight"));
 			paddingBottom = Number(getStyle("paddingBottom"));
 			
-			var text:CSSText = new CSSText();
-			text.text = message;
+			var text:Text = new Text();
+			text.htmlText = message;
 			text.percentWidth = 100;
 			var hBox:HBox = new HBox();
 			hBox.addChild(text);
 			hBox.styleName = (isError) ? getStyle("errorMessageStyleName") : getStyle("messageStyleName");
-			hBox.includeInLayout = false;
 			hBox.setStyle("left", paddingLeft);
 			hBox.setStyle("right", paddingRight);
+			if (clickToClose) {
+				text.selectable = false;
+				text.useHandCursor = true;
+				text.buttonMode = true;
+				hBox.mouseChildren = false;
+				hBox.useHandCursor = true;
+				hBox.buttonMode = true;
+				hBox.toolTip = "Click to close";
+				hBox.addEventListener(MouseEvent.CLICK, closeMessageHandler, false, 0, true);
+			}
+			hBox.filters = messageFilters;
 			
-			if (duration == -1) duration = Math.min(15000, Math.max(message.length / 30 * 1000, 4500));
+			if (duration == -1) duration = Math.min(15000, Math.max(message.length / 30 * 1000 + 500, 1000));
 			showComponent(hBox, duration, priority);
 		}
 		public function showComponent(component:UIComponent, duration:int = 4500, priority:int = 0):void {
@@ -136,10 +154,10 @@ package com.nbilyk.display {
 			if (showEffect) {
 				showEffect.addEventListener(EffectEvent.EFFECT_END, showEffectEndHandler);
 				showEffect.play([component]);
-				setTimeout(showComponentComplete, showEffect.duration + duration, component);
+				componentHideTimeout = setTimeout(showComponentComplete, showEffect.duration + duration, component);
 			} else {
 				component.addEventListener(Event.ENTER_FRAME, componentEnterFrameHandler);
-				setTimeout(showComponentComplete, duration, component);
+				componentHideTimeout = setTimeout(showComponentComplete, duration, component);
 			}
 		}
 		private function showEffectEndHandler(event:EffectEvent):void {
@@ -167,7 +185,13 @@ package com.nbilyk.display {
 			defaultHideEffect.yFrom = defaultShowEffect.yTo;
 		}
 		
+		private function closeMessageHandler(event:MouseEvent):void {
+			showComponentComplete(UIComponent(event.currentTarget));
+		}
+		
 		private function showComponentComplete(component:UIComponent):void {
+			clearTimeout(componentHideTimeout);
+			
 			component.removeEventListener(Event.ENTER_FRAME, componentEnterFrameHandler);
 			var hideEffect:IEffect = IEffect(getStyle("hideEffect"));
 			if (hideEffect) {
