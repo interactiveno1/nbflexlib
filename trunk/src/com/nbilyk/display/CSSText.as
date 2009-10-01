@@ -6,7 +6,7 @@ package com.nbilyk.display {
 	import flash.net.URLRequest;
 	import flash.text.StyleSheet;
 	import flash.utils.ByteArray;
-
+	
 	import mx.controls.Text;
 
 	[Style(name="styleSheetAsset", type="Class")]
@@ -29,7 +29,7 @@ package com.nbilyk.display {
 		}
 		public function set styleSheet(value:StyleSheet):void {
 			_styleSheet = value;
-			if (textField) textField.styleSheet = value;
+			invalidateProperties();
 		}
 
 		[Bindable]
@@ -58,10 +58,12 @@ package com.nbilyk.display {
 				}
 			}
 		}
-		override protected function createChildren():void {
-			super.createChildren();
-			if (styleSheet) textField.styleSheet = styleSheet;
+
+		override protected function commitProperties():void {
+			super.commitProperties();
+			textField.styleSheet = _styleSheet;
 		}
+		
 		public function loadStyleSheet(url:String):void {
 			var urlLoader:URLLoader = new URLLoader();
 			var urlRequest:URLRequest = new URLRequest(url);
