@@ -6,25 +6,34 @@ package com.nbilyk.utils {
 	
 	public class StringUtils {
 		
-		public static function stringToObject(_str:String, scope:DisplayObject):Object {
+		public static function stringToObject(str:String, scope:DisplayObject):Object {
 			// Throws an error if _str does not path correctly to a DisplayObject
-			var _arr:Array = _str.split(".");
-			var _obj:DisplayObject;
-			if (_arr[0] == "this") {
-				_obj = scope;
-				_arr.splice(0, 1);
+			var arr:Array = str.split(".");
+			var obj:DisplayObject;
+			if (arr[0] == "this") {
+				obj = scope;
+				arr.splice(0, 1);
 			} else {
-				_obj = scope.root;
+				obj = scope.root;
 			}
-			var len:int = _arr.length;
+			var len:int = arr.length;
 			for (var i:int = 0; i<len; i++) {
-				_obj = _obj[_arr[i]];
+				obj = obj[arr[i]];
 			}
-			return _obj;
+			return obj;
 		}
-		public static function replaceSubStr(_str:String, find_str:String, replace_str:String):String {
-			var split_arr:Array = _str.split(find_str);
-			return split_arr.join(replace_str);
+		public static function replaceSubStr(str:String, find:String, replace:String):String {
+			var split:Array = str.split(find);
+			return split.join(replace);
+		}
+		public static function replaceSubStrs(str:String, find:Array, replace:Array):String {
+			var newStr:String = str;
+			var findL:uint = find.length;
+			if (findL != replace.length) throw new ArgumentError("The find array length does not match the replace array length.");
+			for (var i:uint = 0; i < findL; i++) {
+				newStr = replaceSubStr(newStr, find[i], replace[i]);
+			}
+			return newStr;
 		}
 		
 		public static function trim(str:String):String {
@@ -54,11 +63,11 @@ package com.nbilyk.utils {
 			if (i == -1) return "";
 			return filename.substr(i + 1).toLowerCase();
 		}
-		public static function validEmail(email_str:String):Boolean {
-			var a:int = email_str.indexOf("@");
-			if (a == email_str.lastIndexOf("@")) {
+		public static function validEmail(email:String):Boolean {
+			var a:int = email.indexOf("@");
+			if (a == email.lastIndexOf("@")) {
 				if (a > 0) {
-					if (email_str.lastIndexOf(".") > a) {
+					if (email.lastIndexOf(".") > a) {
 						return true;
 					}
 				}
