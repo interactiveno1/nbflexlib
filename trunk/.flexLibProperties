@@ -1,31 +1,48 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties version="1">
   <includeClasses>
-    <classEntry path="com.nbilyk.utils.ComponentUtil"/>
-    <classEntry path="com.nbilyk.utils.EventQueue"/>
-    <classEntry path="com.nbilyk.display.CSSComponent"/>
-    <classEntry path="com.nbilyk.display.CSSText"/>
     <classEntry path="com.nbilyk.display.BetterFormItem"/>
-    <classEntry path="com.nbilyk.utils.UniqueStringFilter"/>
+    <classEntry path="com.nbilyk.display.CSSComponent"/>
     <classEntry path="com.nbilyk.display.CSSImage"/>
-    <classEntry path="com.nbilyk.logging.ArrayTarget"/>
-    <classEntry path="com.nbilyk.utils.DeferredFunctionCall"/>
-    <classEntry path="com.nbilyk.utils.FunctionUtils"/>
-    <classEntry path="com.nbilyk.utils.StringUtils"/>
-    <classEntry path="com.nbilyk.utils.MathUtils"/>
+    <classEntry path="com.nbilyk.display.CSSText"/>
+    <classEntry path="com.nbilyk.display.GradientCanvas"/>
+    <classEntry path="com.nbilyk.display.IPreloader"/>
     <classEntry path="com.nbilyk.display.MessageNotifier"/>
-    <classEntry path="com.nbilyk.utils.ObjectUtils"/>
-    <classEntry path="com.nbilyk.utils.QueuedURLLoaderEvent"/>
+    <classEntry path="com.nbilyk.effects.BitmapEffect"/>
+    <classEntry path="com.nbilyk.effects.BitmapFadeEffect"/>
+    <classEntry path="com.nbilyk.effects.BitmapWipeEffect"/>
+    <classEntry path="com.nbilyk.effects.bitmaptransitions.BitmapFadeTransition"/>
+    <classEntry path="com.nbilyk.effects.bitmaptransitions.BitmapTransition"/>
+    <classEntry path="com.nbilyk.effects.bitmaptransitions.BitmapWipeTransition"/>
+    <classEntry path="com.nbilyk.effects.effectclasses.BitmapEffectInstance"/>
+    <classEntry path="com.nbilyk.effects.effectclasses.BitmapFadeEffectInstance"/>
+    <classEntry path="com.nbilyk.effects.effectclasses.BitmapWipeEffectInstance"/>
+    <classEntry path="com.nbilyk.events.LoaderCreationEvent"/>
+    <classEntry path="com.nbilyk.formatters.DateFormatter"/>
+    <classEntry path="com.nbilyk.formatters.FileSizeFormatter"/>
+    <classEntry path="com.nbilyk.logging.ArrayTarget"/>
+    <classEntry path="com.nbilyk.managers.IPrettyHistoryManagerClient"/>
+    <classEntry path="com.nbilyk.managers.PrettyHistoryManager"/>
+    <classEntry path="com.nbilyk.sharedobject.AbstractPersistantData"/>
+    <classEntry path="com.nbilyk.utils.ArrayUtils"/>
+    <classEntry path="com.nbilyk.utils.ByteArrayUtils"/>
+    <classEntry path="com.nbilyk.utils.ComponentUtil"/>
+    <classEntry path="com.nbilyk.utils.CoordMath"/>
+    <classEntry path="com.nbilyk.utils.DateUtils"/>
+    <classEntry path="com.nbilyk.utils.DeferredFunctionCall"/>
+    <classEntry path="com.nbilyk.utils.EventQueue"/>
+    <classEntry path="com.nbilyk.utils.FunctionUtils"/>
     <classEntry path="com.nbilyk.utils.KineticScrollManager"/>
     <classEntry path="com.nbilyk.utils.LoaderQueue"/>
-    <classEntry path="com.nbilyk.formatters.DateFormatter"/>
-    <classEntry path="com.nbilyk.sharedobject.AbstractPersistantData"/>
-    <classEntry path="com.nbilyk.utils.DateUtils"/>
-    <classEntry path="com.nbilyk.utils.StyleUtil"/>
-    <classEntry path="com.nbilyk.utils.CoordMath"/>
-    <classEntry path="com.nbilyk.validators.URLValidator"/>
-    <classEntry path="com.nbilyk.display.GradientCanvas"/>
+    <classEntry path="com.nbilyk.utils.MathUtils"/>
+    <classEntry path="com.nbilyk.utils.ObjectUtils"/>
+    <classEntry path="com.nbilyk.utils.ParsingUtil"/>
     <classEntry path="com.nbilyk.utils.QueuedEvent"/>
+    <classEntry path="com.nbilyk.utils.QueuedURLLoaderEvent"/>
+    <classEntry path="com.nbilyk.utils.StringUtils"/>
+    <classEntry path="com.nbilyk.utils.StyleUtil"/>
+    <classEntry path="com.nbilyk.utils.UniqueStringFilter"/>
+    <classEntry path="com.nbilyk.validators.URLValidator"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

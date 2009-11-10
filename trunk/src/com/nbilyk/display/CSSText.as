@@ -61,7 +61,10 @@ package com.nbilyk.display {
 
 		override protected function commitProperties():void {
 			super.commitProperties();
-			textField.styleSheet = _styleSheet;
+			if (textField.styleSheet != _styleSheet) {
+				textField.styleSheet = _styleSheet;
+				textField.invalidateDisplayList();
+			}
 		}
 		
 		public function loadStyleSheet(url:String):void {
