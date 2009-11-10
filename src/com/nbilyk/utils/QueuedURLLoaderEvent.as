@@ -14,6 +14,8 @@ package com.nbilyk.utils {
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;	
 
+	[Event(name="loaderCreationComplete", type="com.nbilyk.events.LoaderCreationEvent")]
+	[Event(name="loaderCreationError", type="com.nbilyk.events.LoaderCreationEvent")]
 	public class QueuedURLLoaderEvent extends QueuedEvent {
 		private var _urlLoader:URLLoader;
 		private var _urlRequest:URLRequest;
