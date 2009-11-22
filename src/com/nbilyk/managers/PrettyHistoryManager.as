@@ -68,7 +68,7 @@ package com.nbilyk.managers {
 			if (!app.historyManagementEnabled) return;
 
 			var index:int = registeredObjects.indexOf(client);
-			registeredObjects.splice(index, 1);
+			if (index != -1) registeredObjects.splice(index, 1);
 		}
 		
 		/**
