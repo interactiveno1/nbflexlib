@@ -5,9 +5,6 @@ package com.nbilyk.utils {
 	import flash.events.Event;
 	import flash.events.EventDispatcher;	
 	
-	/**
-	 * @author nbilyk
-	 */
 	[Event(name="call", type="flash.events.Event")]
 	[Event(name="complete", type="flash.events.Event")]
 	[Event(name="priorityChange", type="flash.events.Event")]
