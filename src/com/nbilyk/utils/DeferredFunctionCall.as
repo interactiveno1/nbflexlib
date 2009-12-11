@@ -5,9 +5,6 @@ package com.nbilyk.utils {
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	
-	/**
-	 * @author nbilyk
-	 */
 	[Event(name="called", type="flash.events.Event")]
 	public class DeferredFunctionCall extends EventDispatcher {
 		public static const CALLED:String = "called";

@@ -1,4 +1,7 @@
 package com.nbilyk.managers {
+	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
+	
 	import mx.core.Application;
 	import mx.core.ApplicationGlobals;
 	import mx.events.BrowserChangeEvent;
@@ -105,7 +108,6 @@ package com.nbilyk.managers {
 		}
 
 		/**
-		 *  @private
 		 *  Reloads the _history iframe with the history SWF.
 		 */
 		private function submitQuery():void {
@@ -114,6 +116,18 @@ package com.nbilyk.managers {
 				pendingQueryString = null;
 				app.resetHistory = true;
 			}
+		}
+		
+		/**
+		 * Given a display object, looks up the ancestry to try to determine the client depth automatically.
+		 */
+		public static function calculateClientDepth(client:DisplayObject):uint {
+			var p:DisplayObjectContainer = client.parent;
+			while (p && p != p.stage) {
+				if (p is IPrettyHistoryManagerClient) return IPrettyHistoryManagerClient(p).getClientDepth() + 1;
+				p = p.parent;
+			}
+			return 1;
 		}
 
 		//--------------------------------------------------------------------------

@@ -31,6 +31,7 @@ package com.nbilyk.utils {
 		[ArrayElementType("int")]
 		private var previousTimes:Array;
 		private var velocity:Point;
+		private var _enabled:Boolean = true;
 		
 		public function KineticScrollManager(targetVal:Container = null) {
 			target = targetVal;
@@ -46,6 +47,7 @@ package com.nbilyk.utils {
 			}
 		}
 		private function mouseDownHandler(event:MouseEvent):void {
+			if (!enabled) return;
 			if (target.verticalScrollBar && target.verticalScrollBar.owns(DisplayObject(event.target))) return;
 			if (target.horizontalScrollBar && target.horizontalScrollBar.owns(DisplayObject(event.target))) return;
 			stop();
@@ -55,6 +57,7 @@ package com.nbilyk.utils {
 			target.stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler, false, 0, true);
 		}
 		private function mouseMoveHandler(event:MouseEvent):void {
+			if (!enabled) return;
 			if (!event.buttonDown) {
 				mouseUpHandler();
 				return;
@@ -77,6 +80,7 @@ package com.nbilyk.utils {
 		private function mouseUpHandler(event:MouseEvent = null):void {
 			target.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
 			target.stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+			if (!enabled) return;
 			target.addEventListener(Event.ENTER_FRAME, enterFrameHandler, false, 0, true);
 			
 			var currPoint:Point = new Point(target.mouseX, target.mouseY);
@@ -113,6 +117,17 @@ package com.nbilyk.utils {
 			if (target.stage) {
 				target.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
 				target.stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+			}
+		}
+		
+		public function get enabled():Boolean {
+			return _enabled;
+		}
+		public function set enabled(value:Boolean):void {
+			if (value == _enabled) return; // no-op
+			_enabled = value;
+			if (!value) {
+				stop();
 			}
 		}
 	}
