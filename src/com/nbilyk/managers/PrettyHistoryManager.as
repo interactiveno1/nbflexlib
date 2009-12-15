@@ -2,9 +2,10 @@ package com.nbilyk.managers {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	
-	import mx.core.Application;
 	import mx.core.ApplicationGlobals;
 	import mx.events.BrowserChangeEvent;
+	import mx.logging.ILogger;
+	import mx.logging.Log;
 	import mx.managers.BrowserManager;
 
 	public class PrettyHistoryManager {
@@ -13,6 +14,10 @@ package com.nbilyk.managers {
 		private static var _instance:PrettyHistoryManager;
 		
 		private var pendingQueryString:String;
+		private var isLoadingState:Boolean;
+		private var stateInvalidFlag:Boolean;
+		
+		private var logger:ILogger = Log.getLogger("com.nbilyk.managers.PrettyHistoryManager");
 
 		public static function get instance():PrettyHistoryManager {
 			if (!_instance) _instance = new PrettyHistoryManager(new SingletonEnforcer());
@@ -28,8 +33,8 @@ package com.nbilyk.managers {
 			BrowserManager.getInstance().addEventListener(BrowserChangeEvent.BROWSER_URL_CHANGE, browserUrlChangeHandler);
 			BrowserManager.getInstance().initForHistoryManager();
 		}
-		private function get app():Application {
-			return Application(ApplicationGlobals.application);
+		private function get app():Object {
+			return ApplicationGlobals.application;
 		}
 
 		/**
@@ -37,6 +42,9 @@ package com.nbilyk.managers {
 		 *  Each object must implement the IPrettyHistoryManagerClient interface.
 		 */
 		private var registeredObjects:Array = []; /* Type IPrettyHistoryManagerClient */
+		
+		private var fragmentSplit:Array = []; /* Type String */
+		private var hasStateLoaded:Array = []; /* Type Boolean, parallel to fragmentSplit */
 
 
 		/**
@@ -54,7 +62,7 @@ package com.nbilyk.managers {
 			
 			var split:Array = BrowserManager.getInstance().fragment.split(separator);
 			if (split.length < client.getClientDepth() - 1) return;
-			client.loadState(split[client.getClientDepth()]);
+			invalidateState();
 		}
 		/**
 		 * @see PrettyHistoryManager.register
@@ -64,14 +72,16 @@ package com.nbilyk.managers {
 		}
 		
 		/**
-		 *  Unregisters an object with the PrettyHistoryManager.
-		 *  @param obj IPrettyHistoryManagerClient to unregister.
+		 * Unregisters an object with the PrettyHistoryManager.
+		 * @param obj IPrettyHistoryManagerClient to unregister.
+		 * @return The index of the client. (-1 if not found)
 		 */
-		public function unregister(client:IPrettyHistoryManagerClient):void {
-			if (!app.historyManagementEnabled) return;
+		public function unregister(client:IPrettyHistoryManagerClient):int {
+			if (!app.historyManagementEnabled) return -1;
 
 			var index:int = registeredObjects.indexOf(client);
 			if (index != -1) registeredObjects.splice(index, 1);
+			return index;
 		}
 		
 		/**
@@ -85,7 +95,7 @@ package com.nbilyk.managers {
 		 *  Saves the application's current state to the URL.
 		 */
 		public function save():void {
-			if (!app.historyManagementEnabled) return;
+			if (!app.historyManagementEnabled || isLoadingState) return;
 
 			var clientValues:Array = [""];
 
@@ -118,6 +128,52 @@ package com.nbilyk.managers {
 			}
 		}
 		
+		//----------------------
+		//  Event handlers
+		//----------------------
+
+		/**
+		 *  The browser's url has changed.
+		 */
+		public function browserUrlChangeHandler(event:BrowserChangeEvent):void {
+			fragmentSplit = BrowserManager.getInstance().fragment.split(separator);
+			hasStateLoaded = new Array(fragmentSplit.length);
+			invalidateState();
+		}
+		
+		//--------------------------
+		// Validation methods
+		//--------------------------
+		
+		public function invalidateState():void {
+			stateInvalidFlag = true;
+			app.callLater(validateState);
+		}
+		
+		private function validateState():void {
+			if (stateInvalidFlag) {
+				stateInvalidFlag = false;
+				if (!app.historyManagementEnabled) return;
+				isLoadingState = true;
+				var fragmentSplitL:uint = fragmentSplit.length;
+				for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
+					if (fragmentSplitL < client.getClientDepth() - 1) continue;
+					var clientDepth:uint = client.getClientDepth();
+					if (!hasStateLoaded[clientDepth]) {
+						hasStateLoaded[clientDepth] = true;
+						var newState:String = fragmentSplit[clientDepth];
+						if (client.saveState() != newState) client.loadState(newState);
+					}
+				}
+				isLoadingState = false;
+			}
+		}
+		
+		
+		//----------------------
+		// Utility methods
+		//----------------------
+		
 		/**
 		 * Given a display object, looks up the ancestry to try to determine the client depth automatically.
 		 */
@@ -129,25 +185,7 @@ package com.nbilyk.managers {
 			}
 			return 1;
 		}
-
-		//--------------------------------------------------------------------------
-		//  Event handlers
-		//--------------------------------------------------------------------------
-
-		/**
-		 *  Loads state information.
-		 *
-		 *  @param stateVars State information.
-		 */
-		public function browserUrlChangeHandler(event:BrowserChangeEvent):void {
-			if (!app.historyManagementEnabled) return;
-
-			var split:Array = BrowserManager.getInstance().fragment.split(separator);
-			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
-				if (split.length < client.getClientDepth() - 1) continue;
-				client.loadState(split[client.getClientDepth()]);
-			}
-		}
+		
 	}
 }
 

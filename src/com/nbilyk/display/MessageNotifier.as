@@ -13,7 +13,7 @@ package com.nbilyk.display {
 	
 	import mx.containers.HBox;
 	import mx.controls.Text;
-	import mx.core.Application;
+	import mx.core.ApplicationGlobals;
 	import mx.core.UIComponent;
 	import mx.effects.IEffect;
 	import mx.effects.Move;
@@ -214,8 +214,8 @@ package com.nbilyk.display {
 		// Helper functions
 		//--------------------
 		
-		private function get app():Application {
-			return Application(Application.application);
+		private function get app():Object {
+			return ApplicationGlobals.application;
 		}
 
 	}
