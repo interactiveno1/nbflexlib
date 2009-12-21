@@ -1,6 +1,7 @@
 package com.nbilyk.managers {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.external.ExternalInterface;
 	
 	import mx.core.ApplicationGlobals;
 	import mx.events.BrowserChangeEvent;
@@ -13,9 +14,11 @@ package com.nbilyk.managers {
 
 		private static var _instance:PrettyHistoryManager;
 		
-		private var pendingQueryString:String;
+		private var pendingFragment:String;
+		private var explicitFragment:String;
 		private var isLoadingState:Boolean;
 		private var stateInvalidFlag:Boolean;
+		private var noJs:Boolean;
 		
 		private var logger:ILogger = Log.getLogger("com.nbilyk.managers.PrettyHistoryManager");
 
@@ -28,7 +31,6 @@ package com.nbilyk.managers {
 			super();
 
 			if (_instance) throw new Error("Instance already exists.");
-			if (!app.historyManagementEnabled) return;
 
 			BrowserManager.getInstance().addEventListener(BrowserChangeEvent.BROWSER_URL_CHANGE, browserUrlChangeHandler);
 			BrowserManager.getInstance().initForHistoryManager();
@@ -96,7 +98,6 @@ package com.nbilyk.managers {
 		 */
 		public function save():void {
 			if (!app.historyManagementEnabled || isLoadingState) return;
-
 			var clientValues:Array = [""];
 
 			// Call saveState() on every registered object to get its state information.
@@ -105,7 +106,7 @@ package com.nbilyk.managers {
 			}
 
 			if (clientValues.length) {
-				pendingQueryString = clientValues.join(separator);
+				pendingFragment = clientValues.join(separator);
 				app.callLater(submitQuery);
 			}
 		}
@@ -121,11 +122,59 @@ package com.nbilyk.managers {
 		 *  Reloads the _history iframe with the history SWF.
 		 */
 		private function submitQuery():void {
-			if (pendingQueryString) {
-				BrowserManager.getInstance().setFragment(pendingQueryString);
-				pendingQueryString = null;
-				app.resetHistory = true;
+			if (pendingFragment) {
+				BrowserManager.getInstance().setFragment(pendingFragment);
+				pendingFragment = null;				
+				app.resetHistory = true;			
 			}
+		}
+		
+		/**
+		 * Returns the browser url fragment after the hash.
+		 * Use this instead of BrowserManager.getInstance().fragment
+		 * 
+		 * Fix to work with Chrome
+		 * If no javascript, use the explicit fragment set via setFragment().
+		 */
+		public function getFragment():String {
+			if (noJs) return explicitFragment;
+			var fragment:String;
+			if (ExternalInterface.available) {
+				// This is a gross fix to history.js problems -- The BrowserManager reports the url/fragment incorrectly.
+				var url:String = ExternalInterface.call("eval", "window.location.href");
+				if (url) {
+					var urlSplit:Array = url.split("#");
+					if (urlSplit.length >= 2) fragment = urlSplit[1];
+				} else {
+					noJs = true;
+					return explicitFragment;
+				}
+			} else {
+				noJs = true;
+				return explicitFragment;
+			}
+			return BrowserManager.getInstance().fragment;
+		}
+		
+		/**
+		 * A helper method to set the BrowserManager fragment that doesn't result in mayhem.
+		 */
+		public function setFragment(fragment:String):void {
+			explicitFragment = fragment;
+			BrowserManager.getInstance().setFragment(fragment);
+			pendingFragment = null;
+			app.resetHistory = true;
+			BrowserManager.getInstance().dispatchEvent(new BrowserChangeEvent(BrowserChangeEvent.BROWSER_URL_CHANGE));
+		}
+		
+		/**
+		 * Triggers an invalidation and sets all states to be pending for update.
+		 */
+		public function refresh():void {
+			pendingFragment = null;
+			fragmentSplit = getFragment().split(separator);
+			hasStateLoaded = new Array(fragmentSplit.length);
+			invalidateState();
 		}
 		
 		//----------------------
@@ -135,10 +184,12 @@ package com.nbilyk.managers {
 		/**
 		 *  The browser's url has changed.
 		 */
-		public function browserUrlChangeHandler(event:BrowserChangeEvent):void {
-			fragmentSplit = BrowserManager.getInstance().fragment.split(separator);
-			hasStateLoaded = new Array(fragmentSplit.length);
-			invalidateState();
+		private function browserUrlChangeHandler(event:BrowserChangeEvent):void {
+			if (!app.historyManagementEnabled) return;
+			refresh();
+			
+			
+			
 		}
 		
 		//--------------------------
@@ -157,8 +208,8 @@ package com.nbilyk.managers {
 				isLoadingState = true;
 				var fragmentSplitL:uint = fragmentSplit.length;
 				for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
-					if (fragmentSplitL < client.getClientDepth() - 1) continue;
 					var clientDepth:uint = client.getClientDepth();
+					if (clientDepth >= fragmentSplitL) continue;
 					if (!hasStateLoaded[clientDepth]) {
 						hasStateLoaded[clientDepth] = true;
 						var newState:String = fragmentSplit[clientDepth];
