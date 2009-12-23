@@ -34,6 +34,11 @@ package com.nbilyk.managers {
 
 			BrowserManager.getInstance().addEventListener(BrowserChangeEvent.BROWSER_URL_CHANGE, browserUrlChangeHandler);
 			BrowserManager.getInstance().initForHistoryManager();
+			
+			if (!ExternalInterface.call("eval", "window.location.href")) {
+				logger.info("Javascript unavailable. Only working with explicitly set fragments.");
+				noJs = true;
+			}
 		}
 		private function get app():Object {
 			return ApplicationGlobals.application;
@@ -123,6 +128,7 @@ package com.nbilyk.managers {
 		 */
 		private function submitQuery():void {
 			if (pendingFragment) {
+				//logger.debug("Set fragment: " + pendingFragment);
 				BrowserManager.getInstance().setFragment(pendingFragment);
 				pendingFragment = null;				
 				app.resetHistory = true;			
@@ -138,13 +144,11 @@ package com.nbilyk.managers {
 		 */
 		public function getFragment():String {
 			if (noJs) return explicitFragment;
-			var fragment:String;
 			if (ExternalInterface.available) {
-				// This is a gross fix to history.js problems -- The BrowserManager reports the url/fragment incorrectly.
 				var url:String = ExternalInterface.call("eval", "window.location.href");
 				if (url) {
 					var urlSplit:Array = url.split("#");
-					if (urlSplit.length >= 2) fragment = urlSplit[1];
+					if (urlSplit.length >= 2) return urlSplit[1];
 				} else {
 					noJs = true;
 					return explicitFragment;
@@ -153,7 +157,7 @@ package com.nbilyk.managers {
 				noJs = true;
 				return explicitFragment;
 			}
-			return BrowserManager.getInstance().fragment;
+			return "";
 		}
 		
 		/**
@@ -161,6 +165,7 @@ package com.nbilyk.managers {
 		 */
 		public function setFragment(fragment:String):void {
 			explicitFragment = fragment;
+			//logger.debug("Set fragment: " + fragment);
 			BrowserManager.getInstance().setFragment(fragment);
 			pendingFragment = null;
 			app.resetHistory = true;
@@ -187,9 +192,7 @@ package com.nbilyk.managers {
 		private function browserUrlChangeHandler(event:BrowserChangeEvent):void {
 			if (!app.historyManagementEnabled) return;
 			refresh();
-			
-			
-			
+			//logger.debug("BrowserURLCHange handler: " + BrowserManager.getInstance().fragment + " : " +  fragmentSplit);
 		}
 		
 		//--------------------------
@@ -209,7 +212,10 @@ package com.nbilyk.managers {
 				var fragmentSplitL:uint = fragmentSplit.length;
 				for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
 					var clientDepth:uint = client.getClientDepth();
-					if (clientDepth >= fragmentSplitL) continue;
+					if (clientDepth >= fragmentSplitL) {
+						client.loadState("");
+						continue;
+					}
 					if (!hasStateLoaded[clientDepth]) {
 						hasStateLoaded[clientDepth] = true;
 						var newState:String = fragmentSplit[clientDepth];
