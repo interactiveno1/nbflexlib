@@ -85,7 +85,7 @@ package com.nbilyk.managers {
 		 */
 		public function unregister(client:IPrettyHistoryManagerClient):int {
 			if (!app.historyManagementEnabled) return -1;
-
+			
 			var index:int = registeredObjects.indexOf(client);
 			if (index != -1) registeredObjects.splice(index, 1);
 			return index;
@@ -242,6 +242,30 @@ package com.nbilyk.managers {
 			}
 			return 1;
 		}
+		
+		public function resetAllStates():void {
+			isLoadingState = true;
+			registeredObjects.sort(reverseSortOnClientDepth);
+			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
+				client.loadState("");
+			}
+			isLoadingState = false;
+			setFragment("/");
+		}
+
+		private function reverseSortOnClientDepth(a:IPrettyHistoryManagerClient, b:IPrettyHistoryManagerClient):Number {
+			var aDepth:uint = a.getClientDepth();
+			var bDepth:uint = b.getClientDepth();
+
+			if (aDepth > bDepth) {
+				return -1;
+			} else if (aDepth < bDepth) {
+				return 1;
+			} else {
+				return 0;
+			}
+		}
+
 		
 	}
 }
