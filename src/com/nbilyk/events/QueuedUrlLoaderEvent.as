@@ -1,9 +1,9 @@
 ﻿/**
  * Copyright (c) 2007 Nicholas Bilyk
  */
-package com.nbilyk.utils {
+package com.nbilyk.events {
 	import com.nbilyk.display.IPreloader;
-	import com.nbilyk.events.LoaderCreationEvent;
+	import com.nbilyk.utils.QueuedEvent;
 	
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
@@ -16,18 +16,18 @@ package com.nbilyk.utils {
 
 	[Event(name="loaderCreationComplete", type="com.nbilyk.events.LoaderCreationEvent")]
 	[Event(name="loaderCreationError", type="com.nbilyk.events.LoaderCreationEvent")]
-	public class QueuedURLLoaderEvent extends QueuedEvent {
+	public class QueuedUrlLoaderEvent extends QueuedEvent {
 		private var _urlLoader:URLLoader;
 		private var _urlRequest:URLRequest;
 		private var _buildLoader:Boolean = false;
 		public var preloader:IPreloader;
 		private var showingPreloader:Boolean = false;
-		private var _boundEvent:QueuedURLLoaderEvent;
+		private var _boundEvent:QueuedUrlLoaderEvent;
 		
 		// If the download is past this percent after update interval, don't show the preloader.
 		public var maxProgressSpeed:Number = 0.2;
 
-		public function QueuedURLLoaderEvent(newUrlLoader:URLLoader, boundEvent:QueuedURLLoaderEvent, urlRequest:URLRequest) {
+		public function QueuedUrlLoaderEvent(newUrlLoader:URLLoader, boundEvent:QueuedUrlLoaderEvent, urlRequest:URLRequest) {
 			super();
 			if (!!newUrlLoader == !!boundEvent) throw new ArgumentError("QueuedURLLoaderEvent constructor must have either the first or second argument supplied and not both."); 
 			
@@ -132,7 +132,6 @@ package com.nbilyk.utils {
 			if (preloader) preloader.updateProgress(urlLoader.bytesLoaded, urlLoader.bytesTotal);
 		}
 		protected function ioErrorHandler(evt:IOErrorEvent):void {
-			trace("URL: " + _urlRequest.url + " could not be found.");
 			complete();
 			removeListeners();
 		}
