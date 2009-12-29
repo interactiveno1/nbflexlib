@@ -8,6 +8,7 @@
     <classEntry path="com.nbilyk.display.GradientCanvas"/>
     <classEntry path="com.nbilyk.display.IPreloader"/>
     <classEntry path="com.nbilyk.display.MessageNotifier"/>
+    <classEntry path="com.nbilyk.display.QueuedImage"/>
     <classEntry path="com.nbilyk.effects.BitmapEffect"/>
     <classEntry path="com.nbilyk.effects.BitmapFadeEffect"/>
     <classEntry path="com.nbilyk.effects.BitmapWipeEffect"/>
@@ -18,6 +19,9 @@
     <classEntry path="com.nbilyk.effects.effectclasses.BitmapFadeEffectInstance"/>
     <classEntry path="com.nbilyk.effects.effectclasses.BitmapWipeEffectInstance"/>
     <classEntry path="com.nbilyk.events.LoaderCreationEvent"/>
+    <classEntry path="com.nbilyk.events.QueuedUrlLoaderEvent"/>
+    <classEntry path="com.nbilyk.flexvideoplayer.FlexVideoPlayer"/>
+    <classEntry path="com.nbilyk.flexvideoplayer.VideoControlBar"/>
     <classEntry path="com.nbilyk.formatters.DateFormatter"/>
     <classEntry path="com.nbilyk.formatters.FileSizeFormatter"/>
     <classEntry path="com.nbilyk.logging.ArrayTarget"/>
@@ -38,7 +42,6 @@
     <classEntry path="com.nbilyk.utils.ObjectUtils"/>
     <classEntry path="com.nbilyk.utils.ParsingUtil"/>
     <classEntry path="com.nbilyk.utils.QueuedEvent"/>
-    <classEntry path="com.nbilyk.utils.QueuedURLLoaderEvent"/>
     <classEntry path="com.nbilyk.utils.StringUtils"/>
     <classEntry path="com.nbilyk.utils.StyleUtil"/>
     <classEntry path="com.nbilyk.utils.UniqueStringFilter"/>
