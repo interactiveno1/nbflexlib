@@ -35,7 +35,7 @@ package com.nbilyk.managers {
 			BrowserManager.getInstance().addEventListener(BrowserChangeEvent.BROWSER_URL_CHANGE, browserUrlChangeHandler);
 			BrowserManager.getInstance().initForHistoryManager();
 			
-			if (!ExternalInterface.call("eval", "window.location.href")) {
+			if (!ExternalInterface.available || !ExternalInterface.call("eval", "window.location.href")) {
 				logger.info("Javascript unavailable. Only working with explicitly set fragments.");
 				noJs = true;
 			}
