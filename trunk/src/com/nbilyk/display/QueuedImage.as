@@ -18,7 +18,7 @@ package com.nbilyk.display {
 	import flash.net.URLRequest;
 	
 	import mx.logging.ILogger;
-	import mx.logging.Log;		
+	import mx.logging.Log;	
 
 	public class QueuedImage extends MovieClip {
 		public static const IMAGE_REMOVE_BEGIN:String = "imageRemoveBegin";
@@ -100,7 +100,7 @@ package com.nbilyk.display {
 			dispatchEvent(new Event(Event.CANCEL));
 		}
 		protected function loaderCreationCompleteHandler(event:LoaderCreationEvent):void {
-			logger.info("Image: " + _queuedLoaderEvent.urlRequest.url + " has loaded.");
+			//logger.info("Image: " + _queuedLoaderEvent.urlRequest.url + " has loaded.");
 			_isLoaded = true;
 			
 			_imageLoader = event.loader;
