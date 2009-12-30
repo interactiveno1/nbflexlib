@@ -1,15 +1,18 @@
 package com.nbilyk.managers {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.events.EventDispatcher;
 	import flash.external.ExternalInterface;
 	
 	import mx.core.ApplicationGlobals;
 	import mx.events.BrowserChangeEvent;
+	import mx.events.FlexEvent;
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	import mx.managers.BrowserManager;
 
-	public class PrettyHistoryManager {
+	[Event(name="updateComplete", type="mx.events.FlexEvent")]
+	public class PrettyHistoryManager extends EventDispatcher {
 		public static var separator:String = "/";
 
 		private static var _instance:PrettyHistoryManager;
@@ -128,10 +131,10 @@ package com.nbilyk.managers {
 		 */
 		private function submitQuery():void {
 			if (pendingFragment) {
-				//logger.debug("Set fragment: " + pendingFragment);
+				if (pendingFragment.substr(-1, 1) != "/") pendingFragment += "/"; // /foo/bar is the same as /foo/bar/
 				BrowserManager.getInstance().setFragment(pendingFragment);
-				pendingFragment = null;				
-				app.resetHistory = true;			
+				pendingFragment = null;
+				app.resetHistory = true;
 			}
 		}
 		
@@ -164,8 +167,8 @@ package com.nbilyk.managers {
 		 * A helper method to set the BrowserManager fragment that doesn't result in mayhem.
 		 */
 		public function setFragment(fragment:String):void {
+			if (fragment.substr(-1, 1) != "/") fragment += "/"; // /foo/bar is the same as /foo/bar/
 			explicitFragment = fragment;
-			//logger.debug("Set fragment: " + fragment);
 			BrowserManager.getInstance().setFragment(fragment);
 			pendingFragment = null;
 			app.resetHistory = true;
@@ -222,6 +225,7 @@ package com.nbilyk.managers {
 						if (client.saveState() != newState) client.loadState(newState);
 					}
 				}
+				dispatchEvent(new FlexEvent(FlexEvent.UPDATE_COMPLETE));
 				isLoadingState = false;
 			}
 		}
