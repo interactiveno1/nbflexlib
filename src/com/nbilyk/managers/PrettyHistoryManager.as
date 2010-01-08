@@ -22,6 +22,8 @@ package com.nbilyk.managers {
 		private var isLoadingState:Boolean;
 		private var stateInvalidFlag:Boolean;
 		private var noJs:Boolean;
+		private var fragmentIsInvalid:Boolean = true;
+		private var fragment:String;
 		
 		private var logger:ILogger = Log.getLogger("com.nbilyk.managers.PrettyHistoryManager");
 
@@ -146,6 +148,13 @@ package com.nbilyk.managers {
 		 * If no javascript, use the explicit fragment set via setFragment().
 		 */
 		public function getFragment():String {
+			if (fragmentIsInvalid) {
+				fragment = calculateFragment();
+				fragmentIsInvalid = false;
+			}
+			return fragment;
+		}
+		private function calculateFragment():String {
 			if (noJs) return explicitFragment;
 			if (ExternalInterface.available) {
 				var url:String = ExternalInterface.call("eval", "window.location.href");
@@ -194,6 +203,7 @@ package com.nbilyk.managers {
 		 */
 		private function browserUrlChangeHandler(event:BrowserChangeEvent):void {
 			if (!app.historyManagementEnabled) return;
+			fragmentIsInvalid = true;
 			refresh();
 			//logger.debug("BrowserURLCHange handler: " + BrowserManager.getInstance().fragment + " : " +  fragmentSplit);
 		}
@@ -254,7 +264,7 @@ package com.nbilyk.managers {
 				client.loadState("");
 			}
 			isLoadingState = false;
-			setFragment("/");
+			setFragment(separator);
 		}
 
 		private function reverseSortOnClientDepth(a:IPrettyHistoryManagerClient, b:IPrettyHistoryManagerClient):Number {
@@ -269,8 +279,23 @@ package com.nbilyk.managers {
 				return 0;
 			}
 		}
-
 		
+		/**
+		 * Returns true if actionB contains actionA. 
+		 * e.g. ("/foo/bar", "/foo/bar/sha") == true
+		 * ("/foo/sha", "/foo/bar") == false
+		 */
+		public static function isActionAInActionB(actionA:String, actionB:String):Boolean {
+			var actionASplit:Array = actionA.split(separator);
+			var actionBSplit:Array = actionB.split(separator);
+			
+			if (actionASplit.length > actionBSplit.length) return false;
+			var n:uint = actionASplit.length;
+			for (var i:uint = 0; i < n; i++) {
+				if (actionASplit[i] != actionBSplit[i]) return false;
+			}
+			return true;
+		}
 	}
 }
 
