@@ -2,6 +2,8 @@
  * Object Pool V1.1
  * Copyright (c) 2008 Michael Baczynski, http://www.polygonal.de
  *
+ * Modified by Nick Bilyk to use Flex IFactory instances.
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -140,21 +142,27 @@ package de.polygonal.core {
 		public function setFactory(factory:IFactory):void {
 			_factory = factory;
 		}
+		
+		/**
+		 * @param C The class to create for each object node in the pool.  This overwrites the current factory.
+		 */
+		public function setClass(C:Class):void {
+			_factory = new SimpleClassFactory(C);
+		}
+		
+		public function setFunction(func:Function):void {
+			_factory = new SimpleFunctionFactory(func);
+		}
 
 		/**
 		 * Allocate the pool by creating all objects from the factory.
 		 *
 		 * @param size The number of objects to create.
-		 * @param C    The class to create for each object node in the pool.
-		 *             This overwrites the current factory.
+		 * @throws Error if there has been no factory set.
 		 */
-		public function allocate(size:uint, C:Class = null):void {
+		public function allocate(size:uint):void {
 			deconstruct();
-
-			if (C)
-				_factory = new SimpleFactory(C);
-			else if (!_factory)
-				throw new Error("nothing to instantiate.");
+			if (!_factory) throw new Error("nothing to instantiate.");
 
 			_initSize = _currSize = size;
 
@@ -271,14 +279,26 @@ internal class ObjNode {
 
 import mx.core.IFactory;
 
-internal class SimpleFactory implements IFactory {
+internal class SimpleClassFactory implements IFactory {
 	private var _class:Class;
 
-	public function SimpleFactory(C:Class) {
+	public function SimpleClassFactory(C:Class) {
 		_class = C;
 	}
 
 	public function newInstance():* {
 		return new _class();
+	}
+}
+
+internal class SimpleFunctionFactory implements IFactory {
+	private var _function:Function;
+
+	public function SimpleFunctionFactory(func:Function) {
+		_function = func;
+	}
+
+	public function newInstance():* {
+		return _function();
 	}
 }

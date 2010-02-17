@@ -3,8 +3,11 @@
  */
 package com.nbilyk.utils {
 	public class DateUtils {
+		
+		/**
+		 * Returns 1 if dateB is the next day or after dateA, 0 if they are the same day, and -1 if dateA is a day before or earlier dateB 
+		 */
 		public static function dateDayCompare(dateA:Date, dateB:Date):Number {
-			// Returns 1 if dateB is the next day or after dateA, 0 if they are the same day, and -1 if dateA is a day before or earlier dateB
 			if (isSameDay(dateA, dateB))
 				return 0;
 			if (dateA.time < dateB.time) {
@@ -25,6 +28,7 @@ package com.nbilyk.utils {
 			dateA.time = dateB.time;
 			dateB.time = tmp;
 		}
+		
 		public static function percentBetween(value:Date, beginDate:Date, endDate:Date):Number {
 			return (value.time - beginDate.time) / (endDate.time - beginDate.time);
 		}

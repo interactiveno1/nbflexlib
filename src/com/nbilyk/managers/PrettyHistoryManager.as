@@ -10,15 +10,23 @@ package com.nbilyk.managers {
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	import mx.managers.BrowserManager;
-
+	
+	/**
+	 * Triggered after the state is validated.  (All clients have loaded state.)
+	 */
 	[Event(name="updateComplete", type="mx.events.FlexEvent")]
+	
+	/**
+	 * Triggered when the URL has changed, either through a browserURLChange event, or by a call to setFragment.
+	 */
+	[Event(name="urlChanged", type="mx.events.FlexEvent")]
+	
 	public class PrettyHistoryManager extends EventDispatcher {
 		public static var separator:String = "/";
 
 		private static var _instance:PrettyHistoryManager;
 		
 		private var pendingFragment:String;
-		private var explicitFragment:String;
 		private var isLoadingState:Boolean;
 		private var stateInvalidFlag:Boolean;
 		private var noJs:Boolean;
@@ -108,7 +116,7 @@ package com.nbilyk.managers {
 		 */
 		public function save():void {
 			if (!app.historyManagementEnabled || isLoadingState) return;
-			var clientValues:Array = [""];
+			var clientValues:Array = [""]; /* Type String */
 
 			// Call saveState() on every registered object to get its state information.
 			for each (var registeredObject:IPrettyHistoryManagerClient in registeredObjects) {
@@ -133,10 +141,8 @@ package com.nbilyk.managers {
 		 */
 		private function submitQuery():void {
 			if (pendingFragment) {
-				if (pendingFragment.substr(-1, 1) != "/") pendingFragment += "/"; // /foo/bar is the same as /foo/bar/
-				BrowserManager.getInstance().setFragment(pendingFragment);
-				pendingFragment = null;
-				app.resetHistory = true;
+				if (pendingFragment.substr(-1, 1) != separator) pendingFragment += separator; // /foo/bar is the same as /foo/bar/
+				setFragment(pendingFragment, false);
 			}
 		}
 		
@@ -155,7 +161,7 @@ package com.nbilyk.managers {
 			return fragment;
 		}
 		private function calculateFragment():String {
-			if (noJs) return explicitFragment;
+			if (noJs) return fragment;
 			if (ExternalInterface.available) {
 				var url:String = ExternalInterface.call("eval", "window.location.href");
 				if (url) {
@@ -163,25 +169,27 @@ package com.nbilyk.managers {
 					if (urlSplit.length >= 2) return urlSplit[1];
 				} else {
 					noJs = true;
-					return explicitFragment;
+					return fragment;
 				}
 			} else {
 				noJs = true;
-				return explicitFragment;
+				return fragment;
 			}
 			return "";
 		}
 		
 		/**
 		 * A helper method to set the BrowserManager fragment that doesn't result in mayhem.
+		 * @var doRefresh If true, invalidates the state and therefore, calls loadState on all registered objects.
 		 */
-		public function setFragment(fragment:String):void {
-			if (fragment.substr(-1, 1) != "/") fragment += "/"; // /foo/bar is the same as /foo/bar/
-			explicitFragment = fragment;
-			BrowserManager.getInstance().setFragment(fragment);
+		public function setFragment(newFragment:String, doRefresh:Boolean = true):void {
+			if (newFragment.substr(-1, 1) != "/") newFragment += "/"; // /foo/bar is the same as /foo/bar/
+			fragment = newFragment;
+			BrowserManager.getInstance().setFragment(newFragment);
 			pendingFragment = null;
 			app.resetHistory = true;
-			BrowserManager.getInstance().dispatchEvent(new BrowserChangeEvent(BrowserChangeEvent.BROWSER_URL_CHANGE));
+			if (doRefresh) refresh();
+			dispatchEvent(new FlexEvent(FlexEvent.URL_CHANGED));
 		}
 		
 		/**
@@ -205,7 +213,7 @@ package com.nbilyk.managers {
 			if (!app.historyManagementEnabled) return;
 			fragmentIsInvalid = true;
 			refresh();
-			//logger.debug("BrowserURLCHange handler: " + BrowserManager.getInstance().fragment + " : " +  fragmentSplit);
+			dispatchEvent(new FlexEvent(FlexEvent.URL_CHANGED));
 		}
 		
 		//--------------------------
@@ -248,6 +256,7 @@ package com.nbilyk.managers {
 		/**
 		 * Given a display object, looks up the ancestry to try to determine the client depth automatically.
 		 */
+		// TODO: should the parent walk use IUIComponent owner?
 		public static function calculateClientDepth(client:DisplayObject):uint {
 			var p:DisplayObjectContainer = client.parent;
 			while (p && p != p.stage) {
