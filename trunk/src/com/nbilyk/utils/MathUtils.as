@@ -3,7 +3,8 @@
  */
 package com.nbilyk.utils {
 
-	public class MathUtils {	
+	public final class MathUtils {
+		
 		/**
 		 * Examples: 										<br />
 		 * MathUtils.float(12345.67, -1) returns 12350		<br />
@@ -145,9 +146,19 @@ package com.nbilyk.utils {
 		public function abs(x:Number):Number {
 			return (x >= 0) ? x : -x;
 		}
+		
+		/**
+		 * Returns 1 if x >= 0, 0 if not.
+		 */
 		public function sign(x:Number):Number {
 			return (x >= 0) ? 1 : 0;
 		}
+		
+		/**
+		 * Performs the quadratic equation to solve for:
+		 * 0 = a ^ 2 + b + c
+		 * @return an Array of length 2 where the values are the two possible answers.
+		 */
 		public function quadratic(a:Number, b:Number, c:Number):Array {
 			var d:Number = Math.sqrt(b * b - 4 * a * c);
 			return [(-b + d) / (2 * a), (-b - d) / (2 * a)];		}

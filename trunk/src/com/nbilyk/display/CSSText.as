@@ -6,14 +6,12 @@ package com.nbilyk.display {
 	import flash.net.URLRequest;
 	import flash.text.StyleSheet;
 	import flash.utils.ByteArray;
-	
-	import mx.controls.Text;
 
 	[Style(name="styleSheetAsset", type="Class")]
 	[Event(name="cssComplete", type="flash.events.Event")]
 	[Event(name="ioError", type="flash.events.IOErrorEvent")]
 	[Event(name="securityError", type="flash.events.SecurityErrorEvent")]
-	public class CSSText extends Text {
+	public class CSSText extends BetterText {
 		public static const CSS_COMPLETE:String = "cssComplete";
 
 		private var _styleSheetUrl:String;
@@ -21,15 +19,6 @@ package com.nbilyk.display {
 
 		public function CSSText() {
 			super();
-		}
-
-		[Bindable]
-		public function get styleSheet():StyleSheet {
-			return _styleSheet;
-		}
-		public function set styleSheet(value:StyleSheet):void {
-			_styleSheet = value;
-			invalidateProperties();
 		}
 
 		[Bindable]
@@ -59,14 +48,6 @@ package com.nbilyk.display {
 			}
 		}
 
-		override protected function commitProperties():void {
-			super.commitProperties();
-			if (textField.styleSheet != _styleSheet) {
-				textField.styleSheet = _styleSheet;
-				textField.invalidateDisplayList();
-			}
-		}
-		
 		public function loadStyleSheet(url:String):void {
 			var urlLoader:URLLoader = new URLLoader();
 			var urlRequest:URLRequest = new URLRequest(url);
