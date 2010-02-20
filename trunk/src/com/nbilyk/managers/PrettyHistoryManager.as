@@ -1,10 +1,12 @@
 package com.nbilyk.managers {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.external.ExternalInterface;
 	
 	import mx.core.ApplicationGlobals;
+	import mx.core.IUIComponent;
 	import mx.events.BrowserChangeEvent;
 	import mx.events.FlexEvent;
 	import mx.logging.ILogger;
@@ -33,6 +35,15 @@ package com.nbilyk.managers {
 		private var fragmentIsInvalid:Boolean = true;
 		private var fragment:String;
 		
+		/**
+		 *  An Array of objects that will save and load state information.
+		 *  Each object must implement the IPrettyHistoryManagerClient interface.
+		 */
+		private var registeredObjects:Array = []; /* Type IPrettyHistoryManagerClient */
+		
+		private var fragmentSplit:Array = []; /* Type String */
+		private var hasStateLoaded:Array = []; /* Type Boolean, parallel to fragmentSplit */
+		
 		private var logger:ILogger = Log.getLogger("com.nbilyk.managers.PrettyHistoryManager");
 
 		public static function get instance():PrettyHistoryManager {
@@ -58,22 +69,40 @@ package com.nbilyk.managers {
 		}
 
 		/**
-		 *  An Array of objects that will save and load state information.
-		 *  Each object must implement the IPrettyHistoryManagerClient interface.
+		 * Causes the client to automatically be registered and unregistered as it's added and removed from the stage. 
+		 * @param client The DisplayObject to watch.
 		 */
-		private var registeredObjects:Array = []; /* Type IPrettyHistoryManagerClient */
+		public static function registerDisplayObjectClient(client:IPrettyHistoryManagerClient):void {
+			var dO:DisplayObject = DisplayObject(client);
+			dO.addEventListener(Event.ADDED_TO_STAGE, clientAddedToStageHandler, false, 0, true);
+			dO.addEventListener(Event.REMOVED_FROM_STAGE, clientRemovedFromStageHandler, false, 0, true);
+			if (dO.stage) register(client);
+		}
 		
-		private var fragmentSplit:Array = []; /* Type String */
-		private var hasStateLoaded:Array = []; /* Type Boolean, parallel to fragmentSplit */
+		/**
+		 * Unregisters and removes listeners to a client added through <code>registerDisplayObjectClient</code>.
+		 * @param client
+		 * @see #registerDisplayObjectClient
+		 */
+		public static function unregisterDisplayObjectClient(client:IPrettyHistoryManagerClient):void {
+			var dO:DisplayObject = DisplayObject(client);
+			dO.removeEventListener(Event.ADDED_TO_STAGE, clientAddedToStageHandler);
+			dO.removeEventListener(Event.REMOVED_FROM_STAGE, clientRemovedFromStageHandler);
+			unregister(client);
+		}
+		
+		private static function clientAddedToStageHandler(event:Event):void {
+			register(IPrettyHistoryManagerClient(event.currentTarget));
+		}
+		private static function clientRemovedFromStageHandler(event:Event):void {
+			unregister(IPrettyHistoryManagerClient(event.currentTarget));
+		}
 
 
 		/**
-		 *  Registers an object with the PrettyHistoryManager.
-		 *  The object must implement the IPrettyHistoryManagerClient interface.
+		 *  Registers an IPrettyHistoryManagerClient with the PrettyHistoryManager.
 		 *
-		 *  @param obj Object to register.
-		 *
-		 *  @see mx.managers.IPrettyHistoryManagerClient
+		 *  @param client
 		 */
 		public function register(client:IPrettyHistoryManagerClient):void {
 			if (!app.historyManagementEnabled) return;
@@ -84,35 +113,70 @@ package com.nbilyk.managers {
 			if (split.length < client.getClientDepth() - 1) return;
 			invalidateState();
 		}
+		
 		/**
-		 * @see PrettyHistoryManager.register
+		 * @see #register
 		 */
 		public static function register(client:IPrettyHistoryManagerClient):void {
-			PrettyHistoryManager.instance.register(client);
+			instance.register(client);
 		}
 		
 		/**
 		 * Unregisters an object with the PrettyHistoryManager.
 		 * @param obj IPrettyHistoryManagerClient to unregister.
-		 * @return The index of the client. (-1 if not found)
+		 * @return Returns <code>true</code> if the client was found. 
 		 */
-		public function unregister(client:IPrettyHistoryManagerClient):int {
-			if (!app.historyManagementEnabled) return -1;
+		public function unregister(client:IPrettyHistoryManagerClient, unregisterChildren:Boolean = false):Boolean {
+			if (!app.historyManagementEnabled) return false;
 			
 			var index:int = registeredObjects.indexOf(client);
-			if (index != -1) registeredObjects.splice(index, 1);
-			return index;
+			if (index == -1) return false;
+			registeredObjects.splice(index, 1);
+			
+			var clientDepth:int = client.getClientDepth();
+			if (unregisterChildren) {
+				var n:uint = registeredObjects.length;
+				for (var i:uint = 0; i < n; i++) {
+					var registeredObject:IPrettyHistoryManagerClient = registeredObjects[i];
+					if (registeredObject.getClientDepth() >= clientDepth) {
+						registeredObjects.splice(i, 1);
+						i--; n--;
+					}
+				}
+			}
+			
+			return true;
+		}
+		
+		public static function unregisterDisplayTree(root:DisplayObjectContainer):void {
+			instance.unregisterDisplayTree(root);
 		}
 		
 		/**
-		 * @see PrettyHistoryManager.unregister
+		 * Removes all clients that descend from a given DisplayObject.
+		 * @param root The root of the tree to remove.
+		 */
+		public function unregisterDisplayTree(root:DisplayObjectContainer):void {
+			if (!root) return;
+			var n:uint = registeredObjects.length;
+			for (var i:uint = 0; i < n; i++) {
+				var registeredObject:IPrettyHistoryManagerClient = registeredObjects[i];
+				if (registeredObject is DisplayObject && owns(root, DisplayObject(registeredObject))) {
+					registeredObjects.splice(i, 1);
+					i--; n--;
+				}
+			}
+		}
+		
+		/**
+		 * @see PrettyHistoryManager#unregister
 		 */
 		public static function unregister(client:IPrettyHistoryManagerClient):void {
-			PrettyHistoryManager.instance.unregister(client);
+			instance.unregister(client);
 		}
 
 		/**
-		 *  Saves the application's current state to the URL.
+		 * Saves the application's current state to the URL.
 		 */
 		public function save():void {
 			if (!app.historyManagementEnabled || isLoadingState) return;
@@ -130,10 +194,10 @@ package com.nbilyk.managers {
 		}
 		
 		/**
-		 * @see PrettyHistoryManager.save
+		 * @see #save
 		 */
 		public static function save():void {
-			PrettyHistoryManager.instance.save();
+			instance.save();
 		}
 
 		/**
@@ -183,7 +247,7 @@ package com.nbilyk.managers {
 		 * @var doRefresh If true, invalidates the state and therefore, calls loadState on all registered objects.
 		 */
 		public function setFragment(newFragment:String, doRefresh:Boolean = true):void {
-			if (newFragment.substr(-1, 1) != "/") newFragment += "/"; // /foo/bar is the same as /foo/bar/
+			if (newFragment.substr(-1, 1) != separator) newFragment += separator; // /foo/bar is the same as /foo/bar/
 			fragment = newFragment;
 			BrowserManager.getInstance().setFragment(newFragment);
 			pendingFragment = null;
@@ -254,18 +318,44 @@ package com.nbilyk.managers {
 		//----------------------
 		
 		/**
+		 * Checks if <code>child</code> is a descendant of <code>parent</code>
+		 * @param parent
+		 * @param child
+		 */
+		protected function owns(parent:DisplayObjectContainer, child:DisplayObject):Boolean {
+			if (child == parent) return true;
+			var p:DisplayObjectContainer = child.parent;
+			try {
+				while (p) {
+					if (p == parent) return true;
+					if (p is IUIComponent) p = IUIComponent(p).owner;
+					else p = p.parent;
+				}
+			} catch (e:SecurityError) {
+				// You can't own what you don't have access to.
+				return false;
+			}
+			return false;
+		}
+		
+		/**
 		 * Given a display object, looks up the ancestry to try to determine the client depth automatically.
 		 */
-		// TODO: should the parent walk use IUIComponent owner?
 		public static function calculateClientDepth(client:DisplayObject):uint {
 			var p:DisplayObjectContainer = client.parent;
-			while (p && p != p.stage) {
-				if (p is IPrettyHistoryManagerClient) return IPrettyHistoryManagerClient(p).getClientDepth() + 1;
-				p = p.parent;
-			}
+			try {
+				while (p && p != p.stage) {
+					if (p is IPrettyHistoryManagerClient) return IPrettyHistoryManagerClient(p).getClientDepth() + 1;
+					if (p is IUIComponent) p = IUIComponent(p).owner;
+					else p = p.parent;
+				}
+			} catch (error:SecurityError) {}
 			return 1;
 		}
 		
+		/**
+		 * Reset all states to their initial state.
+		 */
 		public function resetAllStates():void {
 			isLoadingState = true;
 			registeredObjects.sort(reverseSortOnClientDepth);
@@ -295,6 +385,9 @@ package com.nbilyk.managers {
 		 * ("/foo/sha", "/foo/bar") == false
 		 */
 		public static function isActionAInActionB(actionA:String, actionB:String):Boolean {
+			if (!actionA || !actionB) return false;
+			if (actionB.substr(-1, 1) != separator) actionB += separator; // /foo/bar is the same as /foo/bar/
+			
 			var actionASplit:Array = actionA.split(separator);
 			var actionBSplit:Array = actionB.split(separator);
 			

@@ -12,7 +12,7 @@ package com.nbilyk.utils {
 		public static const COMPLETE:String = "complete";
 		
 		private var _currentEvent:QueuedEvent;
-		private var _events:Array;
+		private var _events:Array; /* Type QueuedEvent */
 		private var dispatcher:EventDispatcher;
 
 		public function EventQueue() {
@@ -28,9 +28,9 @@ package com.nbilyk.utils {
 			_events.splice(index, 0, queuedEvent);
 			
 			if (!queuedEvent.completed) {
-				queuedEvent.addEventListener(QueuedEvent.PRIORITY_CHANGE, priorityChangeHandler);
-				queuedEvent.addEventListener(QueuedEvent.CALL, calledHandler);
-				queuedEvent.addEventListener(QueuedEvent.COMPLETE, completeHandler);
+				queuedEvent.addEventListener(QueuedEvent.PRIORITY_CHANGE, priorityChangeHandler, false, 0, true);
+				queuedEvent.addEventListener(QueuedEvent.CALL, calledHandler, false, 0, true);
+				queuedEvent.addEventListener(QueuedEvent.COMPLETE, completeHandler, false, 0, true);
 			}
 			if (_currentEvent == null) doNextEvent();
 		}
@@ -72,6 +72,7 @@ package com.nbilyk.utils {
 		 */
 		public function removeAllEvents():void {
 			_events = new Array();
+			_currentEvent = null;
 		}
 		protected function doNextEvent():void {
 			if (length == 0) return;
