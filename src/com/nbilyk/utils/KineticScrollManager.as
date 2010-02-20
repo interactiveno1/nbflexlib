@@ -44,6 +44,7 @@ package com.nbilyk.utils {
 			_target = value;
 			if (value) {
 				target.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler, false, 0, true);
+				target.addEventListener(MouseEvent.CLICK, mouseClickHandler, true, 100, true);
 			}
 		}
 		private function mouseDownHandler(event:MouseEvent):void {
@@ -99,6 +100,13 @@ package com.nbilyk.utils {
 			target.horizontalScrollPosition -= velocity.x;
 			target.verticalScrollPosition -= velocity.y;
 		}
+		
+		private function mouseClickHandler(event:MouseEvent):void {
+			if (velocity.length > 5) {
+				event.stopImmediatePropagation();
+			}
+		}
+		
 		public function stop():void {
 			target.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
 			velocity = new Point();
@@ -113,6 +121,7 @@ package com.nbilyk.utils {
 		}
 		private function removeAllListeners():void {
 			target.removeEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
+			target.removeEventListener(MouseEvent.CLICK, mouseClickHandler, true);
 			target.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
 			if (target.stage) {
 				target.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
