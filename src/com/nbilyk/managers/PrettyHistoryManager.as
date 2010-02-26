@@ -148,6 +148,9 @@ package com.nbilyk.managers {
 			return true;
 		}
 		
+		/**
+		 * @see #unregisterDisplayTree
+		 */
 		public static function unregisterDisplayTree(root:DisplayObjectContainer):void {
 			instance.unregisterDisplayTree(root);
 		}
@@ -224,6 +227,7 @@ package com.nbilyk.managers {
 			}
 			return fragment;
 		}
+		
 		private function calculateFragment():String {
 			if (noJs) return fragment;
 			if (ExternalInterface.available) {
@@ -365,7 +369,10 @@ package com.nbilyk.managers {
 			isLoadingState = false;
 			setFragment(separator);
 		}
-
+		
+		/**
+		 * Sort compare function to sort registered objects by their depth.
+		 */
 		private function reverseSortOnClientDepth(a:IPrettyHistoryManagerClient, b:IPrettyHistoryManagerClient):Number {
 			var aDepth:uint = a.getClientDepth();
 			var bDepth:uint = b.getClientDepth();
@@ -378,7 +385,7 @@ package com.nbilyk.managers {
 				return 0;
 			}
 		}
-		
+
 		/**
 		 * Returns true if actionB contains actionA. 
 		 * e.g. ("/foo/bar", "/foo/bar/sha") == true
