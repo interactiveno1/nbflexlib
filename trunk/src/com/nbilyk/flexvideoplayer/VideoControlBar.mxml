@@ -3,12 +3,10 @@
 	<mx:Script>
 		<![CDATA[
 			import com.nbilyk.utils.FunctionUtils;
-			import flash.utils.setTimeout;
 			import mx.events.VideoEvent;
 			import mx.events.SliderEvent;
 			import flash.utils.getTimer;
 			import mx.events.FlexEvent;
-			import mx.effects.Fade;
 			import mx.controls.VideoDisplay;
 			
 			public var hideControlsDelay:uint = 72; // In frames
@@ -20,12 +18,10 @@
 			public var useTransitions:Boolean = true;
 			public var autoHide:Boolean = true;
 			
-			private var showing:Boolean = true;
 			private var wasPlaying:Boolean;
 			private var isSeeking:Boolean;
 			private var isChangingPlayheadTime:Boolean;
 			private var showControlsTime:int;
-			private var showVolumeTime:int;
 			private var lastMousePoint:Point = new Point();
 
 			private function addedToStageHandler(event:Event):void {

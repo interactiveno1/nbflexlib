@@ -75,7 +75,7 @@ package com.nbilyk.utils {
 			pendingDict[event.currentTarget] = names;
 			if (!names.length) {
 				delete pendingDict[event.currentTarget];
-				var container:Container = Container(event.currentTarget)
+				var container:Container = Container(event.currentTarget);
 				container.invalidateProperties();
 				container.createComponentsFromDescriptors();
 			}

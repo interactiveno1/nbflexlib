@@ -15,7 +15,6 @@ package com.nbilyk.display {
 		public static const CSS_COMPLETE:String = "cssComplete";
 
 		private var _styleSheetUrl:String;
-		private var _styleSheet:StyleSheet;
 
 		public function CSSText() {
 			super();

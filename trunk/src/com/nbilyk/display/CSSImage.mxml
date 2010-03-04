@@ -15,9 +15,6 @@
 				super.styleChanged(styleProp);
 				cssImage = getStyle("image");
 			}
-			private function get cssImage():Object {
-				return _cssImage;
-			}
 			private function set cssImage(value:Object):void {
 				if (value == _cssImage) return;
 				_cssImage = value;

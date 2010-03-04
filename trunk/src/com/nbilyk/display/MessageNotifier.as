@@ -75,7 +75,7 @@ package com.nbilyk.display {
 					this.messageStyleName = "messageStyle82";
 					this.errorMessageStyleName = "errorMessageStyle82";
 					this.closeButtonStyleName = "messageNotifierCloseButton82";
-				}
+				};
 				StyleManager.setStyleDeclaration("MessageNotifier", messageNotifierCss, true);
 				
 				var messageCss:CSSStyleDeclaration = new CSSStyleDeclaration(".messageStyle82");
@@ -89,7 +89,7 @@ package com.nbilyk.display {
 					this.cornerRadius = 8;
 					this.backgroundColor = 0xFFFFFF;
 					this.fontWeight = "bold";
-				}
+				};
 				StyleManager.setStyleDeclaration(".messageStyle82", messageCss, true);
 				
 				var errorMessageCss:CSSStyleDeclaration = new CSSStyleDeclaration(".errorMessageStyle82");
@@ -104,7 +104,7 @@ package com.nbilyk.display {
 					this.backgroundColor = 0xFFFFFF;
 					this.fontWeight = "bold";
 					this.color = 0xFF0000;
-				}
+				};
 				StyleManager.setStyleDeclaration(".errorMessageStyle82", errorMessageCss, true);
 			}
 		}
