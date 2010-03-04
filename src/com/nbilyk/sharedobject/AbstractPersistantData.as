@@ -11,9 +11,6 @@ package com.nbilyk.sharedobject {
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.logging.ILogger;
-	import mx.logging.Log;
-	
 	[Event(name="saveSuccess", type="flash.event.Event")]
 	[Event(name="saveFail", type="flash.event.Event")]
 	public class AbstractPersistantData extends EventDispatcher {
@@ -22,7 +19,7 @@ package com.nbilyk.sharedobject {
 		
 		private var _cookieName:String;
 		[ArrayElementType("SharedObject")]
-		private static var sharedObjects:Object = new Object();;
+		private static var sharedObjects:Object = new Object();
 		
 		public function AbstractPersistantData(cookieName:String, autoFetch:Boolean = false) {
 			var className:String = getQualifiedClassName(this); 

@@ -4,7 +4,6 @@
 	<mx:Script>
 		<![CDATA[
 			import flash.utils.getTimer;
-			import mx.events.VideoEvent;
 			
 			private const LOAD_PADDING:Number = 1.10;
 			
