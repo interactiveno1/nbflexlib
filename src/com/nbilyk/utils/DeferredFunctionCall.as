@@ -11,22 +11,30 @@ package com.nbilyk.utils {
 		
 		public var obj:Object;
 		public var func:Function;
-		public var args:Array = [];
+		public var args:Array;
+		public var appendEvent:Boolean;
 		
 		private var _hasBeenCalled:Boolean = false;
 		
-		public function DeferredFunctionCall(_func:Function, _args:Array = null) {
+		public function DeferredFunctionCall(func:Function, args:Array = null, appendEvent:Boolean = false) {
 			super();
-			func = _func;
-			if (_args) args = _args;
+			this.func = func;
+			this.args = (args == null) ? [] : args;
+			this.appendEvent = appendEvent;
 		}
 		public function call(event:Event = null):void {
-			func.apply(obj, args);
+			if (appendEvent) func.apply(obj, args.concat(event));
+			else func.apply(obj, args);
 			_hasBeenCalled = true;
 			dispatchEvent(new Event(CALLED));
 		}
 		public function get hasBeenCalled():Boolean {
 			return _hasBeenCalled;
+		}
+		
+		public static function createHandler(func:Function, args:Array = null, appendEvent:Boolean = false):Function {
+			var dfc:DeferredFunctionCall = new DeferredFunctionCall(func, args, appendEvent);
+			return dfc.call;
 		}
 	}
 }
