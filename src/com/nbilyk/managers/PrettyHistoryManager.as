@@ -185,9 +185,15 @@ package com.nbilyk.managers {
 			if (!app.historyManagementEnabled || isLoadingState) return;
 			var clientValues:Array = [""]; /* Type String */
 
-			// Call saveState() on every registered object to get its state information.
+			// Call saveState() on every registered object to get its state information:
 			for each (var registeredObject:IPrettyHistoryManagerClient in registeredObjects) {
-				clientValues[registeredObject.getClientDepth()] = registeredObject.saveState();
+				var n:uint = registeredObject.getParamCount();
+				var saveValues:Array = registeredObject.saveState();
+				saveValues.length = n;
+				var clientDepth:uint = registeredObject.getClientDepth();
+				for (var i:uint = 0; i < n; i++) {
+					clientValues[clientDepth + i] = saveValues[i];
+				}
 			}
 
 			if (clientValues.length) {
@@ -302,13 +308,27 @@ package com.nbilyk.managers {
 				for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
 					var clientDepth:uint = client.getClientDepth();
 					if (clientDepth >= fragmentSplitL) {
-						client.loadState("");
+						// The url fragment ends before this client begins.
+						client.loadState(new Array(client.getParamCount()));
 						continue;
 					}
 					if (!hasStateLoaded[clientDepth]) {
 						hasStateLoaded[clientDepth] = true;
-						var newState:String = fragmentSplit[clientDepth];
-						if (client.saveState() != newState) client.loadState(newState);
+						var clientParamCount:uint = client.getParamCount();
+						var newArgs:Array = fragmentSplit.slice(clientDepth, clientDepth + clientParamCount);
+						newArgs.length = clientParamCount;
+						var previousArgs:Array = client.saveState();
+						previousArgs.length = clientParamCount;
+						
+						// Check if the parameters to the client have changed.
+						var hasChanged:Boolean = false;
+						for (var i:uint = 0; i < clientParamCount; i++) {
+							if (newArgs[i] != previousArgs[i]) {
+								hasChanged = true;
+								break;
+							}
+						}
+						if (hasChanged) client.loadState(newArgs);
 					}
 				}
 				dispatchEvent(new FlexEvent(FlexEvent.UPDATE_COMPLETE));
@@ -343,13 +363,16 @@ package com.nbilyk.managers {
 		}
 		
 		/**
-		 * Given a display object, looks up the ancestry to try to determine the client depth automatically.
+		 * Given a display object, walks up the ancestry to try to determine the client depth automatically.
 		 */
 		public static function calculateClientDepth(client:DisplayObject):uint {
 			var p:DisplayObjectContainer = client.parent;
 			try {
 				while (p && p != p.stage) {
-					if (p is IPrettyHistoryManagerClient) return IPrettyHistoryManagerClient(p).getClientDepth() + 1;
+					if (p is IPrettyHistoryManagerClient) {
+						var prettyClient:IPrettyHistoryManagerClient = IPrettyHistoryManagerClient(p);
+						return prettyClient.getClientDepth() + prettyClient.getParamCount();
+					}
 					if (p is IUIComponent) p = IUIComponent(p).owner;
 					else p = p.parent;
 				}
@@ -364,7 +387,7 @@ package com.nbilyk.managers {
 			isLoadingState = true;
 			registeredObjects.sort(reverseSortOnClientDepth);
 			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
-				client.loadState("");
+				client.loadState(new Array(client.getParamCount()));
 			}
 			isLoadingState = false;
 			setFragment(separator);

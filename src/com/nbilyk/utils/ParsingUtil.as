@@ -1,5 +1,5 @@
 package com.nbilyk.utils {
-	import com.nbilyk.formatters.DateFormatter;
+	import mx.formatters.DateFormatter;
 	
 	public class ParsingUtil {
 		public static function parseBoolean(value:String, defaultValue:Boolean = false):Boolean {
