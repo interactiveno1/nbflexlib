@@ -1,7 +1,7 @@
 package com.nbilyk.utils {
-	import com.nbilyk.formatters.DateFormatter;
-	
 	import flash.utils.describeType;
+	
+	import mx.formatters.DateFormatter;
 
 	public class XMLUtils {
 		
