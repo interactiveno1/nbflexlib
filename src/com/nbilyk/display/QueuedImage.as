@@ -100,7 +100,6 @@ package com.nbilyk.display {
 			dispatchEvent(new Event(Event.CANCEL));
 		}
 		protected function loaderCreationCompleteHandler(event:LoaderCreationEvent):void {
-			//logger.info("Image: " + _queuedLoaderEvent.urlRequest.url + " has loaded.");
 			_isLoaded = true;
 			
 			_imageLoader = event.loader;

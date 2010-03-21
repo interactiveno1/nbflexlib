@@ -14,6 +14,7 @@ package com.nbilyk.display {
 	import mx.styles.CSSStyleDeclaration;
 	import mx.styles.StyleManager;
 
+	[Style(name="labelStyleName", type="String")]
 	public class BetterFormItem extends FormItem {
 		public var maxLabelWidth:Number;
 		public var text:Text;
@@ -33,11 +34,7 @@ package com.nbilyk.display {
 				text.setStyle("textAlign", "right");
 				text.selectable = selectable;
 
-				var labelStyleName:String = getStyle("labelStyleName");
-				if (labelStyleName) {
-					var styleDecl:CSSStyleDeclaration = StyleManager.getStyleDeclaration("." + labelStyleName);
-					if (styleDecl) text.styleDeclaration = styleDecl;
-				}
+				text.styleName = getStyle("labelStyleName");
 				rawChildren.addChild(text);
 			} else {
 				itemLabel.selectable = selectable;

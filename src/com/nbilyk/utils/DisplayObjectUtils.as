@@ -16,7 +16,8 @@ package com.nbilyk.utils {
 		 */
 		public static function rasterize(target:DisplayObject, useAlpha:Boolean = true, scaleX:Number = 1, scaleY:Number = 1):Sprite {
 			var bounds:Rectangle = target.getBounds(target);
-			var bmpd:BitmapData = new BitmapData(bounds.width * scaleX, bounds.height * scaleY, useAlpha, 0x00000000);
+			trace("bounds: " + bounds);
+			var bmpd:BitmapData = new BitmapData(target.width * scaleX, target.height * scaleY, useAlpha, 0x00000000);
 			var mat:Matrix = new Matrix();
 			mat.translate(-bounds.left, -bounds.top);
 			mat.scale(scaleX, scaleY);

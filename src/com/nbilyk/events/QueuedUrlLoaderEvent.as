@@ -10,6 +10,7 @@ package com.nbilyk.events {
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
+	import flash.events.SecurityErrorEvent;
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;	
@@ -60,11 +61,13 @@ package com.nbilyk.events {
 			urlLoader.addEventListener(ProgressEvent.PROGRESS, progressHandler);
 			urlLoader.addEventListener(Event.COMPLETE, loadCompleteHandler);
 			urlLoader.addEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
+			urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
 		}
 		private function removeListeners():void {
 			urlLoader.removeEventListener(ProgressEvent.PROGRESS, progressHandler);
 			urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
 			urlLoader.removeEventListener(Event.COMPLETE, loadCompleteHandler);
+			urlLoader.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
 		}
 		public function get isFinishedLoading():Boolean {
 			var bytesLoaded:uint = urlLoader.bytesLoaded;
@@ -132,6 +135,10 @@ package com.nbilyk.events {
 			if (preloader) preloader.updateProgress(urlLoader.bytesLoaded, urlLoader.bytesTotal);
 		}
 		protected function ioErrorHandler(evt:IOErrorEvent):void {
+			complete();
+			removeListeners();
+		}
+		protected function securityErrorHandler(event:SecurityErrorEvent):void {
 			complete();
 			removeListeners();
 		}

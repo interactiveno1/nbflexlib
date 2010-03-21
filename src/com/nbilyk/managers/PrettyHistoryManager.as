@@ -25,15 +25,18 @@ package com.nbilyk.managers {
 	
 	public class PrettyHistoryManager extends EventDispatcher {
 		public static var separator:String = "/";
-
+		public static var prefix:String = separator;
+		
 		private static var _instance:PrettyHistoryManager;
 		
 		private var pendingFragment:String;
 		private var isLoadingState:Boolean;
-		private var stateInvalidFlag:Boolean;
 		private var noJs:Boolean;
-		private var fragmentIsInvalid:Boolean = true;
-		private var fragment:String;
+		private var _fragment:String = "";
+		
+		// Validation flags
+		private var stateIsValidFlag:Boolean = true;
+		private var fragmentIsValidFlag:Boolean;
 		
 		/**
 		 *  An Array of objects that will save and load state information.
@@ -59,13 +62,35 @@ package com.nbilyk.managers {
 			BrowserManager.getInstance().addEventListener(BrowserChangeEvent.BROWSER_URL_CHANGE, browserUrlChangeHandler);
 			BrowserManager.getInstance().initForHistoryManager();
 			
-			if (!ExternalInterface.available || !ExternalInterface.call("eval", "window.location.href")) {
+			if (!checkJavascriptEnabled()) {
 				logger.info("Javascript unavailable. Only working with explicitly set fragments.");
-				noJs = true;
 			}
 		}
+		
+		/**
+		 * Returns true if javascript is enabled.
+		 */
+		public function checkJavascriptEnabled():Boolean {
+			try {
+				noJs = !ExternalInterface.available || !ExternalInterface.call("eval", "window.location.href");
+			} catch (error:Error) {
+				noJs = true;
+			}
+			return !noJs;
+		}
+		
+		/**
+		 * A way to get the Application without requiring a the Application dependency tree.
+		 */
 		private function get app():Object {
 			return ApplicationGlobals.application;
+		}
+		
+		/**
+		 * @see mx.core.Application#callLater
+		 */
+		private function callLater(method:Function, args:Array = null):void {
+			app.callLater(method, args);
 		}
 
 		/**
@@ -177,30 +202,6 @@ package com.nbilyk.managers {
 		public static function unregister(client:IPrettyHistoryManagerClient):void {
 			instance.unregister(client);
 		}
-
-		/**
-		 * Saves the application's current state to the URL.
-		 */
-		public function save():void {
-			if (!app.historyManagementEnabled || isLoadingState) return;
-			var clientValues:Array = [""]; /* Type String */
-
-			// Call saveState() on every registered object to get its state information:
-			for each (var registeredObject:IPrettyHistoryManagerClient in registeredObjects) {
-				var n:uint = registeredObject.getParamCount();
-				var saveValues:Array = registeredObject.saveState();
-				saveValues.length = n;
-				var clientDepth:uint = registeredObject.getClientDepth();
-				for (var i:uint = 0; i < n; i++) {
-					clientValues[clientDepth + i] = saveValues[i];
-				}
-			}
-
-			if (clientValues.length) {
-				pendingFragment = clientValues.join(separator);
-				app.callLater(submitQuery);
-			}
-		}
 		
 		/**
 		 * @see #save
@@ -208,13 +209,44 @@ package com.nbilyk.managers {
 		public static function save():void {
 			instance.save();
 		}
+		
+		/**
+		 * Saves the application's current state to the URL.
+		 */
+		public function save():void {
+			if (!app.historyManagementEnabled || isLoadingState) return;
+			pendingFragment = getSavedStateFragment();
+			callLater(submitQuery);
+		}
+		
+		/**
+		 * For all clients between the depths of <code>startIndex</code> and <code>endIndex</code>
+		 * this will call saveState() on them and build a fragment url between the two indices.
+		 * If there are no registered clients within range, this will return null.
+		 */
+		protected function getSavedStateFragment(startIndex:uint = 0, endIndex:uint = uint.MAX_VALUE):String {
+			if (startIndex > endIndex) return "";
+			var clientValues:Array = []; /* Type String */
+
+			for each (var registeredObject:IPrettyHistoryManagerClient in registeredObjects) {
+				var clientDepth:uint = registeredObject.getClientDepth();
+				if (clientDepth < startIndex || clientDepth >= endIndex) continue;
+				var n:uint = registeredObject.getParamCount();
+				var saveValues:Array = registeredObject.saveState();
+				saveValues.length = n;
+				for (var i:uint = 0; i < n && i < endIndex - clientDepth; i++) {
+					clientValues[clientDepth - startIndex + i] = saveValues[i];
+				}
+			}
+			if (!clientValues.length) return null;
+			return clientValues.join(separator);
+		}
 
 		/**
 		 *  Reloads the _history iframe with the history SWF.
 		 */
 		private function submitQuery():void {
-			if (pendingFragment) {
-				if (pendingFragment.substr(-1, 1) != separator) pendingFragment += separator; // /foo/bar is the same as /foo/bar/
+			if (pendingFragment != null) {
 				setFragment(pendingFragment, false);
 			}
 		}
@@ -223,23 +255,26 @@ package com.nbilyk.managers {
 		 * Returns the browser url fragment after the hash.
 		 * Use this instead of BrowserManager.getInstance().fragment
 		 * 
-		 * Fix to work with Chrome
-		 * If no javascript, use the explicit fragment set via setFragment().
+		 * If the history.js is unavailable, this will use the explicitly set fragment set via setFragment().
 		 */
 		public function getFragment():String {
-			if (fragmentIsInvalid) {
+			if (!fragmentIsValidFlag) {
 				fragment = calculateFragment();
-				fragmentIsInvalid = false;
 			}
 			return fragment;
 		}
 		
+		/**
+		 * Calculates the fragment from the url. 
+		 * Fix to work with Chrome
+		 * If the history.js is unavailable, this will use the explicitly set fragment set via setFragment().
+		 */
 		private function calculateFragment():String {
 			if (noJs) return fragment;
 			if (ExternalInterface.available) {
 				var url:String = ExternalInterface.call("eval", "window.location.href");
 				if (url) {
-					var urlSplit:Array = url.split("#");
+					var urlSplit:Array = url.split("#" + prefix);
 					if (urlSplit.length >= 2) return urlSplit[1];
 				} else {
 					noJs = true;
@@ -256,24 +291,53 @@ package com.nbilyk.managers {
 		 * A helper method to set the BrowserManager fragment that doesn't result in mayhem.
 		 * @var doRefresh If true, invalidates the state and therefore, calls loadState on all registered objects.
 		 */
-		public function setFragment(newFragment:String, doRefresh:Boolean = true):void {
-			if (newFragment.substr(-1, 1) != separator) newFragment += separator; // /foo/bar is the same as /foo/bar/
-			fragment = newFragment;
-			BrowserManager.getInstance().setFragment(newFragment);
+		public function setFragment(newFragment:String = "", doRefresh:Boolean = true):void {
 			pendingFragment = null;
+			newFragment = sanitizeFragment(newFragment);
+			fragment = newFragment;
+			BrowserManager.getInstance().setFragment(prefix + newFragment);
 			app.resetHistory = true;
 			if (doRefresh) refresh();
 			dispatchEvent(new FlexEvent(FlexEvent.URL_CHANGED));
 		}
 		
 		/**
+		 * Splices in a fragment into the existing fragment. 
+		 * e.g. If, after a saveState() on the clients, the fragment is a/b/c/d/e, 
+		 * and this method is called with ("g/h", 3, 5, true) then the new fragment will be a/b/g/h/e, 
+		 * and then on the next frame loadState will be called on the clients with client depths between 3 and 5.
+		 * 
+		 * @var fragmentSection The fragment section to splice into the url after a fresh save. 
+		 * @var startIndex The inclusive start index of the subsection.
+		 * @var endIndex The exclusive end index of the subsection.
+		 * @var doRefresh If true, invalidates the state and therefore calls loadState on all registered objects.
+		 * @see #setFragment
+		 */
+		public function setFragmentSection(fragmentSection:String = "", startIndex:uint = 0, endIndex:uint = uint.MAX_VALUE, doRefresh:Boolean = true):void {
+			if (startIndex > endIndex) return;
+			fragmentSection = sanitizeFragment(fragmentSection);
+			var sectionA:String = getSavedStateFragment(0, startIndex) || "";
+			var sectionB:String = getSavedStateFragment(endIndex) || "";
+			var newFragment:String = sectionA + separator + fragmentSection + separator + sectionB;
+			setFragment(newFragment, doRefresh);
+		}
+		
+		/**
 		 * Triggers an invalidation and sets all states to be pending for update.
+		 * This is called internally on a browser url change and on an explicit setFragment call.
 		 */
 		public function refresh():void {
-			pendingFragment = null;
 			fragmentSplit = getFragment().split(separator);
 			hasStateLoaded = new Array(fragmentSplit.length);
 			invalidateState();
+		}
+		
+		private function get fragment():String {
+			return _fragment;
+		}
+		private function set fragment(value:String):void {
+			_fragment = value;
+			fragmentIsValidFlag = true;
 		}
 		
 		//----------------------
@@ -285,7 +349,7 @@ package com.nbilyk.managers {
 		 */
 		private function browserUrlChangeHandler(event:BrowserChangeEvent):void {
 			if (!app.historyManagementEnabled) return;
-			fragmentIsInvalid = true;
+			fragmentIsValidFlag = false;
 			refresh();
 			dispatchEvent(new FlexEvent(FlexEvent.URL_CHANGED));
 		}
@@ -295,13 +359,18 @@ package com.nbilyk.managers {
 		//--------------------------
 		
 		public function invalidateState():void {
-			stateInvalidFlag = true;
+			stateIsValidFlag = false;
 			app.callLater(validateState);
 		}
 		
+		/**
+		 * Iterates over the pretty history manager clients and calls loadState on the ones that their
+		 * url fragment section has changed.
+		 * Dispatches an FlexEvent.UPDATE_COMPLETE event.
+		 */
 		private function validateState():void {
-			if (stateInvalidFlag) {
-				stateInvalidFlag = false;
+			if (!stateIsValidFlag) {
+				stateIsValidFlag = true;
 				if (!app.historyManagementEnabled) return;
 				isLoadingState = true;
 				var fragmentSplitL:uint = fragmentSplit.length;
@@ -377,58 +446,67 @@ package com.nbilyk.managers {
 					else p = p.parent;
 				}
 			} catch (error:SecurityError) {}
-			return 1;
+			return 0;
 		}
 		
-		/**
-		 * Reset all states to their initial state.
-		 */
-		public function resetAllStates():void {
-			isLoadingState = true;
-			registeredObjects.sort(reverseSortOnClientDepth);
-			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
-				client.loadState(new Array(client.getParamCount()));
-			}
-			isLoadingState = false;
-			setFragment(separator);
-		}
-		
-		/**
-		 * Sort compare function to sort registered objects by their depth.
-		 */
-		private function reverseSortOnClientDepth(a:IPrettyHistoryManagerClient, b:IPrettyHistoryManagerClient):Number {
-			var aDepth:uint = a.getClientDepth();
-			var bDepth:uint = b.getClientDepth();
-
-			if (aDepth > bDepth) {
-				return -1;
-			} else if (aDepth < bDepth) {
-				return 1;
-			} else {
-				return 0;
-			}
-		}
-
 		/**
 		 * Returns true if actionB contains actionA. 
-		 * e.g. ("/foo/bar", "/foo/bar/sha") == true
-		 * ("/foo/sha", "/foo/bar") == false
+		 * e.g. ("foo/bar", "foo/bar/sha") == true
+		 * ("foo/sha", "foo/bar") == false
+		 * ("foo/bar", "mep/foo/bar/sha", 1) == true
+		 * @var actionA The fragment or partial fragment to check if exists in actionB
+		 * @var actionB The entire fragment to search 
 		 */
 		public static function isActionAInActionB(actionA:String, actionB:String):Boolean {
 			if (!actionA || !actionB) return false;
-			if (actionB.substr(-1, 1) != separator) actionB += separator; // /foo/bar is the same as /foo/bar/
+			actionA = sanitizeFragment(actionA);
+			actionB = sanitizeFragment(actionB);
 			
 			var actionASplit:Array = actionA.split(separator);
 			var actionBSplit:Array = actionB.split(separator);
 			
-			if (actionASplit.length > actionBSplit.length) return false;
 			var n:uint = actionASplit.length;
+			if (n > actionBSplit.length) return false;
 			for (var i:uint = 0; i < n; i++) {
 				if (actionASplit[i] != actionBSplit[i]) return false;
 			}
 			return true;
 		}
+		
+		/**
+		 * Takes an action and returns a slice of it based on the separators.
+		 * @var action The action to split up by its separators and slice.
+		 * @var startIndex the starting index of the slice.
+		 * @var endIndex the ending index of the slice. 
+		 * @see Array#slice
+		 */
+		public static function sliceAction(action:String, startIndex:uint, endIndex:uint = uint.MAX_VALUE):String {
+			action = sanitizeFragment(action);
+			var actionSplit:Array = action.split(separator);
+			return actionSplit.slice(startIndex, endIndex).join(separator);
+		}
+		
+		/**
+		 * Sanitizes the fragment so:
+		 * 1. It doesn't start with the separator.
+		 * 2. It doesn't end with the separator.
+		 */
+		public static function sanitizeFragment(f:String):String {
+			var separatorL:uint = separator.length;
+			if (f.substr(0, separatorL) == separator) f = f.substr(separatorL, f.length);
+			if (f.substr(-separatorL, separatorL) == separator) f = f.substring(0, f.length - separatorL);
+			return f;
+		}
 	}
 }
+	import com.nbilyk.managers.IPrettyHistoryManagerClient;
+	
 
 class SingletonEnforcer {}
+
+class InitialSeparator implements IPrettyHistoryManagerClient {
+	public function getParamCount():uint { return 1; }
+	public function getClientDepth():uint { return 0; }
+	public function loadState(args:Array):void {}
+	public function saveState():Array { return [""]; }
+}

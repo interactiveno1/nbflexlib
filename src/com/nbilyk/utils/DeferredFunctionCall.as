@@ -16,11 +16,11 @@ package com.nbilyk.utils {
 		
 		private var _hasBeenCalled:Boolean = false;
 		
-		public function DeferredFunctionCall(func:Function, args:Array = null, appendEvent:Boolean = false) {
+		public function DeferredFunctionCall(funcVal:Function, argsVal:Array = null, appendEventVal:Boolean = false) {
 			super();
-			this.func = func;
-			this.args = (args == null) ? [] : args;
-			this.appendEvent = appendEvent;
+			func = funcVal;
+			args = (argsVal == null) ? [] : argsVal;
+			appendEvent = appendEventVal;
 		}
 		public function call(event:Event = null):void {
 			if (appendEvent) func.apply(obj, args.concat(event));
