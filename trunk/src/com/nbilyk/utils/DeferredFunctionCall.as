@@ -4,6 +4,7 @@
 package com.nbilyk.utils {
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.events.IEventDispatcher;
 	
 	[Event(name="called", type="flash.events.Event")]
 	public class DeferredFunctionCall extends EventDispatcher {
@@ -23,6 +24,7 @@ package com.nbilyk.utils {
 			appendEvent = appendEventVal;
 		}
 		public function call(event:Event = null):void {
+			if (event) IEventDispatcher(event.currentTarget).removeEventListener(event.type, call);
 			if (appendEvent) func.apply(obj, args.concat(event));
 			else func.apply(obj, args);
 			_hasBeenCalled = true;

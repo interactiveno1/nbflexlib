@@ -18,7 +18,7 @@ package com.nbilyk.display {
 	public class BetterFormItem extends FormItem {
 		public var maxLabelWidth:Number;
 		public var text:Text;
-		[Inspectable] public var selectable:Boolean = false;
+		[Inspectable] public var selectable:Boolean = true;
 		[Inspectable] public var multiline:Boolean = false;
 
 		public function BetterFormItem() {
