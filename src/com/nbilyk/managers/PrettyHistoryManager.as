@@ -322,6 +322,15 @@ package com.nbilyk.managers {
 			setFragment(newFragment, doRefresh);
 		}
 		
+		public function reset():void {
+			/* isLoadingState = true;
+			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
+				client.loadState(new Array(client.getParamCount()));
+			}
+			isLoadingState = false; */
+			setFragment();
+		}
+		
 		/**
 		 * Triggers an invalidation and sets all states to be pending for update.
 		 * This is called internally on a browser url change and on an explicit setFragment call.
@@ -499,8 +508,8 @@ package com.nbilyk.managers {
 		}
 	}
 }
-	import com.nbilyk.managers.IPrettyHistoryManagerClient;
-	
+
+import com.nbilyk.managers.IPrettyHistoryManagerClient;
 
 class SingletonEnforcer {}
 
