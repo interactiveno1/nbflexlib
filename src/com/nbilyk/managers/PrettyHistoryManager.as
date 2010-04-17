@@ -315,19 +315,28 @@ package com.nbilyk.managers {
 		 */
 		public function setFragmentSection(fragmentSection:String = "", startIndex:uint = 0, endIndex:uint = uint.MAX_VALUE, doRefresh:Boolean = true):void {
 			if (startIndex > endIndex) return;
-			fragmentSection = sanitizeFragment(fragmentSection);
-			var sectionA:String = getSavedStateFragment(0, startIndex) || "";
-			var sectionB:String = getSavedStateFragment(endIndex) || "";
-			var newFragment:String = sectionA + separator + fragmentSection + separator + sectionB;
+			var newFragment:String = createFragmentFromSection(fragmentSection, startIndex, endIndex);
 			setFragment(newFragment, doRefresh);
 		}
 		
+		/**
+		 * Returns the fragment after splicing a fragment section into it.
+		 * @var fragmentSection The fragment section to splice into the url after a fresh save. 
+		 * @var startIndex The inclusive start index of the subsection.
+		 * @var endIndex The exclusive end index of the subsection.
+		 */
+		public function createFragmentFromSection(fragmentSection:String = "", startIndex:uint = 0, endIndex:uint = uint.MAX_VALUE):String {
+			if (startIndex > endIndex) return "";
+			fragmentSection = sanitizeFragment(fragmentSection);
+			var sectionA:String = getSavedStateFragment(0, startIndex) || "";
+			var sectionB:String = getSavedStateFragment(endIndex) || "";
+			return sanitizeFragment(sectionA + separator + fragmentSection + separator + sectionB);
+		}
+		
+		/**
+		 * Navigates back to the home state.
+		 */
 		public function reset():void {
-			/* isLoadingState = true;
-			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
-				client.loadState(new Array(client.getParamCount()));
-			}
-			isLoadingState = false; */
 			setFragment();
 		}
 		
@@ -467,6 +476,7 @@ package com.nbilyk.managers {
 		 * @var actionB The entire fragment to search 
 		 */
 		public static function isActionAInActionB(actionA:String, actionB:String):Boolean {
+			if (actionA == actionB) return true;
 			if (!actionA || !actionB) return false;
 			actionA = sanitizeFragment(actionA);
 			actionB = sanitizeFragment(actionB);
