@@ -5,7 +5,8 @@ package com.nbilyk.utils {
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
-	import flash.utils.getQualifiedClassName;	
+	import flash.utils.getQualifiedClassName;
+	import mx.utils.DescribeTypeCache;
 	
 	/**
 	 * @author nbilyk
@@ -53,9 +54,14 @@ package com.nbilyk.utils {
 		/**
 		 * Takes objectB and merges it into objectA. 
 		 */
-		public static function mergeObjects(objectA:*, objectB:*, transferNulls:Boolean = false):void {
+		public static function mergeObjects(objectA:*, objectB:*, transferNulls:Boolean = false, useCache:Boolean = true):void {
 			if (getQualifiedClassName(objectA) != getQualifiedClassName(objectB)) throw new ArgumentError("objectA and objectB are not the same type.");
-			var typeXml:XML = describeType(objectA);
+			var typeXml:XML;
+			if (useCache) {
+				typeXml = DescribeTypeCache.describeType(objectA).typeDescription;
+			} else {
+				typeXml = describeType(objectA);
+			}
 			for each (var variable:XML in typeXml.variable) {
 				if (transferNulls || objectB[variable.@name] != null) {
 					objectA[variable.@name] = objectB[variable.@name];
