@@ -5,6 +5,9 @@ package com.nbilyk.logging {
 	use namespace mx_internal;
 
 	public class ArrayTarget extends LineFormattedTarget {
+		
+		private static const MAX_LENGTH:uint = 1500;
+		
 		private var _arr:Array;
 
 		public function ArrayTarget() {
@@ -12,7 +15,8 @@ package com.nbilyk.logging {
 			_arr = new Array();
 		}
 	    override mx_internal function internalLog(message:String):void {
-        	 _arr.push(message);
+        	_arr.push(message);
+        	if (_arr.length > MAX_LENGTH) _arr.shift();
     	}
     	public function get text():String {
     		return _arr.join("\n");

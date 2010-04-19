@@ -1,6 +1,4 @@
 package {
-	import com.nbilyk.utils.ListRecycler;
-	
 	public class NBFlexLibClasses {
 		import com.nbilyk.utils.ComponentUtil; ComponentUtil; 
 		import com.nbilyk.events.LoaderCreationEvent; LoaderCreationEvent;
@@ -51,5 +49,6 @@ package {
 		import com.nbilyk.utils.QueuedEvent; QueuedEvent;
 		import com.nbilyk.managers.PrettyHistoryManager; PrettyHistoryManager;
 		import com.nbilyk.utils.ListRecycler; ListRecycler;
+		import com.nbilyk.logging.DebugPanel; DebugPanel;
 	}
 }
