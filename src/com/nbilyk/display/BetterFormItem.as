@@ -20,10 +20,24 @@ package com.nbilyk.display {
 		public var text:Text;
 		[Inspectable] public var selectable:Boolean = true;
 		[Inspectable] public var multiline:Boolean = false;
+		private var _labelToolTip:String;
+		private var toolTipChanged:Boolean;
 
 		public function BetterFormItem() {
 			super();
 		}
+		
+		override public function styleChanged(styleProp:String):void {
+			super.styleChanged(styleProp);
+			var allStyles:Boolean = styleProp == null || styleProp == "styleName";
+
+			if (allStyles || styleProp == "labelStyleName") {
+				if (text) {
+					text.styleName = getStyle("labelStyleName");
+				}
+			}
+		}
+		
 		override protected function createChildren():void {
 			super.createChildren();
 			if (maxLabelWidth) itemLabel.maxWidth = maxLabelWidth;
@@ -45,6 +59,10 @@ package com.nbilyk.display {
 			if (multiline) {
 				text.htmlText = itemLabel.text;
 			}
+			if (toolTipChanged) {
+				toolTipChanged = false;
+				text.toolTip = labelToolTip;
+			}
 		}
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void {
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
@@ -61,6 +79,15 @@ package com.nbilyk.display {
 				measuredMinHeight = Math.max(measuredMinHeight, text.measuredMinHeight);
 				measuredHeight = Math.max(measuredHeight, text.measuredHeight);
 			}
+		}
+		
+		public function get labelToolTip():String {
+			return _labelToolTip;
+		}
+		public function set labelToolTip(value:String):void {
+			_labelToolTip = value;
+			toolTipChanged = true;
+			invalidateProperties();
 		}
 	}
 }
