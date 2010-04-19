@@ -3,7 +3,9 @@
   <includeClasses>
     <classEntry path="NBFlexLibClasses"/>
   </includeClasses>
-  <includeResources/>
+  <includeResources>
+    <resourceEntry destPath="defaults.css" sourcePath="defaults.css"/>
+  </includeResources>
   <namespaceManifests>
     <namespaceManifestEntry manifest="manifest.xml" namespace="http://www.nbilyk.com/2009"/>
   </namespaceManifests>
