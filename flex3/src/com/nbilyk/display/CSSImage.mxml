@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Image xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Metadata>
+		[Style(name="image", type="Class")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			private var _cssImage:Object;
+		
+			override public function stylesInitialized():void {
+				super.stylesInitialized();
+				cssImage = getStyle("image");
+			}
+			override public function styleChanged(styleProp:String):void {
+				super.styleChanged(styleProp);
+				cssImage = getStyle("image");
+			}
+			private function set cssImage(value:Object):void {
+				if (value == _cssImage) return;
+				_cssImage = value;
+				source = value;
+			}
+		]]>
+	</mx:Script>
+</mx:Image>

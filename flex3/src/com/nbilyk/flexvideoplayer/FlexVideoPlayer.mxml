@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" xmlns:flexvideoplayer="com.nbilyk.flexvideoplayer.*" creationComplete="creationComplete();" xmlns:filters="flash.filters.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import flash.utils.getTimer;
+			
+			private const LOAD_PADDING:Number = 1.10;
+			
+			[Bindable] public var bufferingLabel:String = "Buffering...";
+			
+			[Bindable] public var imageSource:String;
+			[Bindable] private var isBuffering:Boolean;
+			[Bindable] private var isBuffered:Boolean;
+			private var _videoSource:String;
+			
+			private var startTime:int;
+			private var maxTimeLeft:Number;
+			
+			private function creationComplete():void {
+				mainVideo.addEventListener(ProgressEvent.PROGRESS, progressHandler);
+				if (_videoSource) bigPlayButton.visible = true;
+			}
+			
+			[Bindable]
+			public function set videoSource(value:String):void {
+				_videoSource = value;
+				if (initialized) reset();
+			}
+			public function get videoSource():String {
+				return _videoSource;
+			}
+			
+			private function bigPlayClickHandler(event:MouseEvent):void {
+				if (mainVideo.source == videoSource) return;
+				mainVideo.source = videoSource;
+				mainVideo.load();
+				isBuffering = true;
+				
+				bigPlayButton.visible = false;
+				startTime = getTimer();
+				maxTimeLeft = 0;
+			}
+			private function progressHandler(event:ProgressEvent):void {
+				var currentTime:int = getTimer();
+				var elapsedTime:int = currentTime - startTime;
+				var percentLoaded:Number = event.bytesLoaded / event.bytesTotal;
+				
+				var remainingLoadTime:Number = elapsedTime / percentLoaded - elapsedTime;
+				var durationMs:Number = mainVideo.totalTime * 1000;
+				
+				var minimumHasLoaded:Boolean = (percentLoaded > .10);
+				if (percentLoaded == 1 || remainingLoadTime * LOAD_PADDING < durationMs && minimumHasLoaded) {
+					// Remaining time left to load is less than movie length with a 15% margin, and at least 10% has been loaded.
+					isBuffering = false;
+					isBuffered = true;
+					mainImage.visible = false;
+					mainVideo.play();
+					mainVideo.removeEventListener(ProgressEvent.PROGRESS, progressHandler);
+				} else {
+					var timeLeft:Number = (remainingLoadTime * LOAD_PADDING - durationMs);
+					if (timeLeft > 0 && timeLeft < 1000 * 60 * 60 * 6) {
+						// If the wait is more than 6 hours, just give it a second to adjust. 
+						if (timeLeft > maxTimeLeft) {
+							maxTimeLeft = timeLeft;
+						}
+						var estimatedBufferingPercent:Number = (maxTimeLeft - timeLeft) / maxTimeLeft;
+						estimatedBufferingPercent = clampNumber(estimatedBufferingPercent, 0, 1);
+						bufferingIndicator.setProgress(estimatedBufferingPercent, 1);
+					}
+				}
+			}
+			private function reset():void {
+				mainVideo.close();
+				isBuffering = false;
+				isBuffered = false;
+				if (_videoSource) bigPlayButton.visible = true;
+				mainImage.visible = true;
+			}
+			private function clampNumber(value:Number, min:Number, max:Number):Number {
+				value = Math.max(min, value);
+				value = Math.min(max, value);
+				return value;
+			}
+			
+			
+		]]>
+	</mx:Script>
+	
+	<filters:DropShadowFilter id="dropShadow" strength=".5"/>
+	
+	<mx:VideoDisplay
+		id="mainVideo"
+		width="100%" 
+		height="100%" 
+		autoPlay="false" 
+		maintainAspectRatio="true"
+		bufferTime="0"
+	/>
+	<flexvideoplayer:VideoControlBar
+		id="mainVideoControls"
+		horizontalCenter="0"
+		bottom="10"
+		width="100%"
+		maxWidth="700"
+		videoDisplay="{mainVideo}"
+		visible="{isBuffered}"
+		includeInLayout="false"
+	 />
+	 <mx:Image
+		id="mainImage"
+		width="100%"
+		height="100%"
+		horizontalAlign="center"
+		verticalAlign="middle"
+		maintainAspectRatio="true"
+		source="{imageSource}"
+		useHandCursor="true" 
+		buttonMode="true"
+		click="bigPlayClickHandler(event);" 	
+	/>
+	<mx:Button id="bigPlayButton" 
+		horizontalCenter="0" 
+		verticalCenter="0" 
+		styleName="vpBigPlayButton" 
+		visible="false"
+		useHandCursor="true" 
+		buttonMode="true"
+		click="bigPlayClickHandler(event);"
+	/>
+	<mx:ProgressBar id="bufferingIndicator" 
+		label="{bufferingLabel}"
+		mode="manual"
+		horizontalCenter="0" 
+		verticalCenter="0"
+		visible="{isBuffering}"
+		styleName="vpBufferingIndicator"
+		filters="{[dropShadow]}"
+	/>
+	
+</mx:Canvas>
