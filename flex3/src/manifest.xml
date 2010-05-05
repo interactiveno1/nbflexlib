@@ -6,5 +6,6 @@
 	<component id="BetterFormItem" class="com.nbilyk.display.BetterFormItem"/>
 	<component id="KineticScrollManager" class="com.nbilyk.utils.KineticScrollManager"/>
 	<component id="DebugPanel" class="com.nbilyk.logging.DebugPanel"/>
+	<component id="MessageNotifier" class="com.nbilyk.display.MessageNotifier"/>
 </componentPackage>
 
