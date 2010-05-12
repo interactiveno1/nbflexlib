@@ -102,7 +102,7 @@ package com.nbilyk.utils {
 		}
 		
 		private function mouseClickHandler(event:MouseEvent):void {
-			if (velocity.length > 5) {
+			if (velocity && velocity.length > 5) {
 				event.stopImmediatePropagation();
 			}
 		}
