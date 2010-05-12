@@ -146,7 +146,10 @@ package com.nbilyk.display {
 				duration = Math.min(15000, Math.max(message.length / 30 * 1000 + 500, 1000));
 			showComponent(hBox, duration, priority);
 		}
-
+		
+		/**
+		 * Adds a component to the queue to be shown.  If you have a text message, use <code>showMessage</code>.
+		 */
 		public function showComponent(component:UIComponent, duration:int = 4500, priority:int = 0):void {
 			eventQueue.addEvent(new QueuedEvent(doShowComponent, [ component, duration ], priority));
 		}
