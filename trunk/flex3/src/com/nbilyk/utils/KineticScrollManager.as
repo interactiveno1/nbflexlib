@@ -30,7 +30,7 @@ package com.nbilyk.utils {
 		private var previousPoints:Array;
 		[ArrayElementType("int")]
 		private var previousTimes:Array;
-		private var velocity:Point;
+		private var velocity:Point = new Point();
 		private var _enabled:Boolean = true;
 		
 		public function KineticScrollManager(targetVal:Container = null) {
@@ -102,7 +102,7 @@ package com.nbilyk.utils {
 		}
 		
 		private function mouseClickHandler(event:MouseEvent):void {
-			if (velocity && velocity.length > 5) {
+			if (velocity.length > 5) {
 				event.stopImmediatePropagation();
 			}
 		}
