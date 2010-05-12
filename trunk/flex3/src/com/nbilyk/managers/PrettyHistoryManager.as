@@ -42,7 +42,7 @@ package com.nbilyk.managers {
 		 *  An Array of objects that will save and load state information.
 		 *  Each object must implement the IPrettyHistoryManagerClient interface.
 		 */
-		private var registeredObjects:Array = []; /* Type IPrettyHistoryManagerClient */
+		public var registeredObjects:Array = []; /* Type IPrettyHistoryManagerClient */
 		
 		private var fragmentSplit:Array = []; /* Type String */
 		private var hasStateLoaded:Array = []; /* Type Boolean, parallel to fragmentSplit */
@@ -216,6 +216,7 @@ package com.nbilyk.managers {
 		public function save():void {
 			if (!app.historyManagementEnabled || isLoadingState) return;
 			pendingFragment = getSavedStateFragment();
+			fragmentSplit = pendingFragment.split(separator);
 			callLater(submitQuery);
 		}
 		
@@ -243,7 +244,7 @@ package com.nbilyk.managers {
 		}
 
 		/**
-		 *  Reloads the _history iframe with the history SWF.
+		 * Called from a callLater, this will use the pending fragment.
 		 */
 		private function submitQuery():void {
 			if (pendingFragment != null) {
@@ -387,40 +388,39 @@ package com.nbilyk.managers {
 		 * Dispatches an FlexEvent.UPDATE_COMPLETE event.
 		 */
 		private function validateState():void {
-			if (!stateIsValidFlag) {
-				stateIsValidFlag = true;
-				if (!app.historyManagementEnabled) return;
-				isLoadingState = true;
-				var fragmentSplitL:uint = fragmentSplit.length;
-				for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
-					var clientDepth:uint = client.getClientDepth();
-					if (clientDepth >= fragmentSplitL) {
-						// The url fragment ends before this client begins.
-						client.loadState(new Array(client.getParamCount()));
-						continue;
-					}
-					if (!hasStateLoaded[clientDepth]) {
-						hasStateLoaded[clientDepth] = true;
-						var clientParamCount:uint = client.getParamCount();
-						var newArgs:Array = fragmentSplit.slice(clientDepth, clientDepth + clientParamCount);
-						newArgs.length = clientParamCount;
-						var previousArgs:Array = client.saveState();
-						previousArgs.length = clientParamCount;
-						
-						// Check if the parameters to the client have changed.
-						var hasChanged:Boolean = false;
-						for (var i:uint = 0; i < clientParamCount; i++) {
-							if (newArgs[i] != previousArgs[i]) {
-								hasChanged = true;
-								break;
-							}
-						}
-						if (hasChanged) client.loadState(newArgs);
-					}
+			if (stateIsValidFlag) return;
+			stateIsValidFlag = true;
+			if (!app.historyManagementEnabled) return;
+			isLoadingState = true;
+			var fragmentSplitL:uint = fragmentSplit.length;
+			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
+				var clientDepth:uint = client.getClientDepth();
+				if (clientDepth >= fragmentSplitL) {
+					// The url fragment ends before this client begins.
+					client.loadState(new Array(client.getParamCount()));
+					continue;
 				}
-				dispatchEvent(new FlexEvent(FlexEvent.UPDATE_COMPLETE));
-				isLoadingState = false;
+				if (!hasStateLoaded[clientDepth]) {
+					hasStateLoaded[clientDepth] = true;
+					var clientParamCount:uint = client.getParamCount();
+					var newArgs:Array = fragmentSplit.slice(clientDepth, clientDepth + clientParamCount);
+					newArgs.length = clientParamCount;
+					var previousArgs:Array = client.saveState();
+					previousArgs.length = clientParamCount;
+					
+					// Check if the parameters to the client have changed.
+					var hasChanged:Boolean = false;
+					for (var i:uint = 0; i < clientParamCount; i++) {
+						if (newArgs[i] != previousArgs[i]) {
+							hasChanged = true;
+							break;
+						}
+					}
+					if (hasChanged) client.loadState(newArgs);
+				}
 			}
+			dispatchEvent(new FlexEvent(FlexEvent.UPDATE_COMPLETE));
+			isLoadingState = false;
 		}
 		
 		
@@ -519,13 +519,4 @@ package com.nbilyk.managers {
 	}
 }
 
-import com.nbilyk.managers.IPrettyHistoryManagerClient;
-
 class SingletonEnforcer {}
-
-class InitialSeparator implements IPrettyHistoryManagerClient {
-	public function getParamCount():uint { return 1; }
-	public function getClientDepth():uint { return 0; }
-	public function loadState(args:Array):void {}
-	public function saveState():Array { return [""]; }
-}
