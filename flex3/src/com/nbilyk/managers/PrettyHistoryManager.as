@@ -4,6 +4,7 @@ package com.nbilyk.managers {
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.external.ExternalInterface;
+	import flash.utils.Dictionary;
 	
 	import mx.core.ApplicationGlobals;
 	import mx.core.IUIComponent;
@@ -36,6 +37,7 @@ package com.nbilyk.managers {
 		
 		// Validation flags
 		private var stateIsValidFlag:Boolean = true;
+		private var browserFragmentIsValidFlag:Boolean = true;
 		private var fragmentIsValidFlag:Boolean;
 		
 		/**
@@ -44,8 +46,16 @@ package com.nbilyk.managers {
 		 */
 		public var registeredObjects:Array = []; /* Type IPrettyHistoryManagerClient */
 		
-		private var fragmentSplit:Array = []; /* Type String */
-		private var hasStateLoaded:Array = []; /* Type Boolean, parallel to fragmentSplit */
+		/**
+		 * A Dictionary of clients that are pending loadState calls.  
+		 */
+		private var clientsPendingLoad:Dictionary = new Dictionary(true);
+		
+		/**
+		 * A Dictionary of clients that are pending saveState calls.  
+		 * This determines which url sections need to be updated. 
+		 */
+		private var clientsPendingSave:Dictionary = new Dictionary(true);
 		
 		private var logger:ILogger = Log.getLogger("com.nbilyk.managers.PrettyHistoryManager");
 
@@ -123,6 +133,12 @@ package com.nbilyk.managers {
 			unregister(IPrettyHistoryManagerClient(event.currentTarget));
 		}
 
+		/**
+		 * @see #register
+		 */
+		public static function register(client:IPrettyHistoryManagerClient):void {
+			instance.register(client);
+		}
 
 		/**
 		 *  Registers an IPrettyHistoryManagerClient with the PrettyHistoryManager.
@@ -133,18 +149,10 @@ package com.nbilyk.managers {
 			if (!app.historyManagementEnabled) return;
 			unregister(client);
 			registeredObjects.push(client);
-			
-			var split:Array = BrowserManager.getInstance().fragment.split(separator);
-			if (split.length < client.getClientDepth() - 1) return;
+			clientsPendingLoad[client] = true;
 			invalidateState();
 		}
 		
-		/**
-		 * @see #register
-		 */
-		public static function register(client:IPrettyHistoryManagerClient):void {
-			instance.register(client);
-		}
 		
 		/**
 		 * Unregisters an object with the PrettyHistoryManager.
@@ -206,19 +214,46 @@ package com.nbilyk.managers {
 		/**
 		 * @see #save
 		 */
-		public static function save():void {
-			instance.save();
+		public static function save(client:IPrettyHistoryManagerClient):void {
+			instance.save(client);
 		}
 		
 		/**
-		 * Saves the application's current state to the URL.
+		 * Flags the client's current state to be saved to the URL.
 		 */
-		public function save():void {
+		public function save(client:IPrettyHistoryManagerClient):void {
 			if (!app.historyManagementEnabled || isLoadingState) return;
-			pendingFragment = getSavedStateFragment();
-			fragmentSplit = pendingFragment.split(separator);
-			callLater(submitQuery);
+			clientsPendingSave[client] = true;
+			invalidateBrowserFragment();
 		}
+		
+		/**
+		 * Flags the url as invalid and calls saveState on every registered client.
+		 */
+		public function saveAll():void {
+			if (!app.historyManagementEnabled || isLoadingState) return;
+			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
+				clientsPendingSave[client] = true;
+			}
+			invalidateBrowserFragment();
+		}
+		
+		/**
+		 * @see #load
+		 */
+		public static function load(client:IPrettyHistoryManagerClient):void {
+			instance.load(client);
+		}
+		
+		/**
+		 * Flags the client's loadState to be called with the corresponding url parameters.
+		 */
+		public function load(client:IPrettyHistoryManagerClient):void {
+			if (!app.historyManagementEnabled) return;
+			clientsPendingLoad[client] = true;
+			invalidateState();
+		}
+		
 		
 		/**
 		 * For all clients between the depths of <code>startIndex</code> and <code>endIndex</code>
@@ -243,15 +278,6 @@ package com.nbilyk.managers {
 			return clientValues.join(separator);
 		}
 
-		/**
-		 * Called from a callLater, this will use the pending fragment.
-		 */
-		private function submitQuery():void {
-			if (pendingFragment != null) {
-				setFragment(pendingFragment, false);
-			}
-		}
-		
 		/**
 		 * Returns the browser url fragment after the hash.
 		 * Use this instead of BrowserManager.getInstance().fragment
@@ -289,8 +315,10 @@ package com.nbilyk.managers {
 		}
 		
 		/**
-		 * A helper method to set the BrowserManager fragment that doesn't result in mayhem.
-		 * @var doRefresh If true, invalidates the state and therefore, calls loadState on all registered objects.
+		 * A helper method to set the BrowserManager fragment.
+		 * 
+		 * @var newFragment The new fragment to place in the url.
+		 * @var doRefresh If true, invalidates the state and therefore calls loadState on all registered objects.
 		 */
 		public function setFragment(newFragment:String = "", doRefresh:Boolean = true):void {
 			pendingFragment = null;
@@ -342,21 +370,27 @@ package com.nbilyk.managers {
 		}
 		
 		/**
-		 * Triggers an invalidation and sets all states to be pending for update.
+		 * Sets all history manager clients to be flagged for a loadState call.
+		 * If you intend to refresh a single component, use load(client) instead. 
 		 * This is called internally on a browser url change and on an explicit setFragment call.
+		 * @see #load()
 		 */
 		public function refresh():void {
-			fragmentSplit = getFragment().split(separator);
-			hasStateLoaded = new Array(fragmentSplit.length);
+			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
+				clientsPendingLoad[client] = true;
+			}
 			invalidateState();
 		}
 		
+		/**
+		 * The cached fragment property.
+		 */
 		private function get fragment():String {
 			return _fragment;
 		}
 		private function set fragment(value:String):void {
-			_fragment = value;
 			fragmentIsValidFlag = true;
+			_fragment = value;
 		}
 		
 		//----------------------
@@ -377,9 +411,24 @@ package com.nbilyk.managers {
 		// Validation methods
 		//--------------------------
 		
+		protected function invalidateProperties():void {
+			app.callLater(validateProperties);
+		}
+		
+		protected function validateProperties():void {
+			if (!stateIsValidFlag) validateState();
+			if (!browserFragmentIsValidFlag) validateBrowserFragment();
+			dispatchEvent(new FlexEvent(FlexEvent.UPDATE_COMPLETE));
+		}
+		
+		/**
+		 * Flags that loadState should be called on all clients that need validation.
+		 * To call loadState on all clients, use <code>refresh()</code>
+		 * @see #refresh()
+		 */
 		public function invalidateState():void {
 			stateIsValidFlag = false;
-			app.callLater(validateState);
+			invalidateProperties();
 		}
 		
 		/**
@@ -387,40 +436,68 @@ package com.nbilyk.managers {
 		 * url fragment section has changed.
 		 * Dispatches an FlexEvent.UPDATE_COMPLETE event.
 		 */
-		private function validateState():void {
-			if (stateIsValidFlag) return;
+		protected function validateState():void {
 			stateIsValidFlag = true;
 			if (!app.historyManagementEnabled) return;
 			isLoadingState = true;
+			var fragmentSplit:Array = getFragment().split(separator);
 			var fragmentSplitL:uint = fragmentSplit.length;
 			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
+				if (!clientsPendingLoad[client]) continue;
 				var clientDepth:uint = client.getClientDepth();
 				if (clientDepth >= fragmentSplitL) {
 					// The url fragment ends before this client begins.
 					client.loadState(new Array(client.getParamCount()));
 					continue;
 				}
-				if (!hasStateLoaded[clientDepth]) {
-					hasStateLoaded[clientDepth] = true;
-					var clientParamCount:uint = client.getParamCount();
-					var newArgs:Array = fragmentSplit.slice(clientDepth, clientDepth + clientParamCount);
-					newArgs.length = clientParamCount;
-					var previousArgs:Array = client.saveState();
-					previousArgs.length = clientParamCount;
-					
-					// Check if the parameters to the client have changed.
-					var hasChanged:Boolean = false;
-					for (var i:uint = 0; i < clientParamCount; i++) {
-						if (newArgs[i] != previousArgs[i]) {
-							hasChanged = true;
-							break;
-						}
+				var clientParamCount:uint = client.getParamCount();
+				var newArgs:Array = fragmentSplit.slice(clientDepth, clientDepth + clientParamCount);
+				newArgs.length = clientParamCount;
+				var previousArgs:Array = client.saveState();
+				previousArgs.length = clientParamCount;
+				
+				// Check if the parameters to the client have changed.
+				var hasChanged:Boolean = false;
+				for (var i:uint = 0; i < clientParamCount; i++) {
+					if (newArgs[i] != previousArgs[i]) {
+						hasChanged = true;
+						break;
 					}
-					if (hasChanged) client.loadState(newArgs);
+				}
+				if (hasChanged) client.loadState(newArgs);
+			}
+			clientsPendingLoad = new Dictionary(true);
+			isLoadingState = false;
+		}
+		
+		/**
+		 * Flags that the browser's url must be updated to match the client states.
+		 */
+		public function invalidateBrowserFragment():void {
+			browserFragmentIsValidFlag = false;
+			invalidateProperties();
+		}
+		
+		/**
+		 * Saves the state on all clients and updates the browser fragment.
+		 */
+		protected function validateBrowserFragment():void {
+			browserFragmentIsValidFlag = true;
+			
+			var frag:String = getFragment();
+			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
+				if (clientsPendingSave[client]) {
+					var clientDepth:uint = client.getClientDepth();
+					var sectionA:String = sliceAction(frag, 0, clientDepth);
+					var sectionB:String = sliceAction(frag, clientDepth + client.getParamCount());
+					frag = sectionA + separator + client.saveState().join(separator) + separator + sectionB;
 				}
 			}
-			dispatchEvent(new FlexEvent(FlexEvent.UPDATE_COMPLETE));
-			isLoadingState = false;
+			clientsPendingSave = new Dictionary(true);
+			
+			if (frag != null) {
+				setFragment(frag, false);
+			}
 		}
 		
 		
