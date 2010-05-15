@@ -41,13 +41,13 @@ package com.nbilyk.utils {
 			return ltrim(rtrim(str));
 		}
 		public static function rtrim(str:String):String {
-			var i:int = str.length-1;
+			var i:int = str.length - 1;
 			var char:String = str.charAt(i);
 			while (i > 0 && (char == " " || char == String.fromCharCode(10) || char == String.fromCharCode(13) || char == String.fromCharCode(9))) {
 				i--;
 				char = str.charAt(i);
-			}		
-			return str.substring(0, i+1);
+			}
+			return str.substring(0, i + 1);
 		}	
 		public static function ltrim(str:String):String {
 			var i:int = 0;

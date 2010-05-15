@@ -50,5 +50,6 @@ package {
 		import com.nbilyk.managers.PrettyHistoryManager; PrettyHistoryManager;
 		import com.nbilyk.utils.ListRecycler; ListRecycler;
 		import com.nbilyk.logging.DebugPanel; DebugPanel;
+		import com.nbilyk.utils.KeyboardTabFocusScroller; KeyboardTabFocusScroller;
 	}
 }

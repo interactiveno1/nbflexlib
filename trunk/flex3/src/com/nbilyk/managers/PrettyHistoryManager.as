@@ -319,6 +319,7 @@ package com.nbilyk.managers {
 		 * 
 		 * @var newFragment The new fragment to place in the url.
 		 * @var doRefresh If true, invalidates the state and therefore calls loadState on all registered objects.
+		 * @var sanitizeFragment If true, the 
 		 */
 		public function setFragment(newFragment:String = "", doRefresh:Boolean = true):void {
 			pendingFragment = null;
@@ -359,7 +360,10 @@ package com.nbilyk.managers {
 			fragmentSection = sanitizeFragment(fragmentSection);
 			var sectionA:String = getSavedStateFragment(0, startIndex) || "";
 			var sectionB:String = getSavedStateFragment(endIndex) || "";
-			return sanitizeFragment(sectionA + separator + fragmentSection + separator + sectionB);
+			var newFragment:String = fragmentSection;
+			if (sectionA) newFragment = sectionA + separator + newFragment;
+			if (sectionB) newFragment = newFragment + separator + sectionB;
+			return newFragment;
 		}
 		
 		/**
@@ -485,19 +489,19 @@ package com.nbilyk.managers {
 			browserFragmentIsValidFlag = true;
 			
 			var frag:String = getFragment();
+			var fragmentSplit:Array = frag.split(separator);
 			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
 				if (clientsPendingSave[client]) {
 					var clientDepth:uint = client.getClientDepth();
-					var sectionA:String = sliceAction(frag, 0, clientDepth);
-					var sectionB:String = sliceAction(frag, clientDepth + client.getParamCount());
-					frag = sectionA + separator + client.saveState().join(separator) + separator + sectionB;
+					var paramCount:uint = client.getParamCount();
+					var clientSave:Array = client.saveState();
+					for (var i:uint = 0; i < paramCount; i++) {
+						fragmentSplit[clientDepth + i] = clientSave[i];
+					}
 				}
 			}
 			clientsPendingSave = new Dictionary(true);
-			
-			if (frag != null) {
-				setFragment(frag, false);
-			}
+			setFragment(fragmentSplit.join(separator), false);
 		}
 		
 		
@@ -583,14 +587,13 @@ package com.nbilyk.managers {
 		}
 		
 		/**
-		 * Sanitizes the fragment so:
-		 * 1. It doesn't start with the separator.
-		 * 2. It doesn't end with the separator.
+		 * Sanitizes the fragment so that it doesn't end with a separator.
 		 */
 		public static function sanitizeFragment(f:String):String {
 			var separatorL:uint = separator.length;
-			if (f.substr(0, separatorL) == separator) f = f.substr(separatorL, f.length);
-			if (f.substr(-separatorL, separatorL) == separator) f = f.substring(0, f.length - separatorL);
+			while (f.substr(-separatorL, separatorL) == separator) {
+				f = f.substring(0, f.length - separatorL);
+			}
 			return f;
 		}
 	}
