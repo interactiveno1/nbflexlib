@@ -1,7 +1,7 @@
 package com.nbilyk.utils {
 	
 	/**
-	 * A collection of utility function for arrays.
+	 * A collection of utility functions for arrays.
 	 */
 	public class ArrayUtils {
 		
