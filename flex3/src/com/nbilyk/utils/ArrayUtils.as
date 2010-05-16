@@ -1,4 +1,8 @@
 package com.nbilyk.utils {
+	
+	/**
+	 * A collection of utility function for arrays.
+	 */
 	public class ArrayUtils {
 		
 		/**
@@ -17,5 +21,48 @@ package com.nbilyk.utils {
 			}
 			return shuffledArray;
 		}
+		
+		/**
+		 * Returns an array containing all the values of arrayA that are present in arrayB. 
+		 */
+		public static function intersect(arrayA:Array, arrayB:Array):Array {
+			var newArray:Array = [];
+			for each (var value:* in arrayA) {
+				if (arrayB.indexOf(value) != -1) {
+					newArray.push(value);
+				}
+			}
+			return newArray;
+		}
+		
+		/**
+		 * Compares arrayA against arrayB and returns the difference.
+		 */
+		public static function diff(arrayA:Array, arrayB:Array):Array {
+			var newArray:Array = [];
+			for each (var value:* in arrayA) {
+				if (arrayB.indexOf(value) == -1) {
+					newArray.push(value);
+				}
+			}
+			return newArray;
+		}
+		
+		/**
+		 * Takes an input array and returns a new array without duplicate values.
+		 */
+		public static function unique(array:Array):Array {
+			var arrayL:uint = array.length;
+			if (!arrayL) return [];
+			var newArray:Array = [array[0]];
+			for (var i:uint = 1; i < arrayL; i++) {
+				var item:* = array[i];
+				if (array.lastIndexOf(item, i - 1) == -1) {
+					newArray.push(item);
+				}
+			}
+			return newArray;
+		}
+		
 	}
 }
