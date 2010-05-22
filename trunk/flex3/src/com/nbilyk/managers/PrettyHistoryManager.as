@@ -449,28 +449,32 @@ package com.nbilyk.managers {
 			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
 				if (!clientsPendingLoad[client]) continue;
 				var clientDepth:uint = client.getClientDepth();
-				if (clientDepth >= fragmentSplitL) {
-					// The url fragment ends before this client begins.
-					client.loadState(new Array(client.getParamCount()));
-					continue;
-				}
 				var clientParamCount:uint = client.getParamCount();
 				var newArgs:Array = fragmentSplit.slice(clientDepth, clientDepth + clientParamCount);
 				newArgs.length = clientParamCount;
 				var previousArgs:Array = client.saveState();
 				previousArgs.length = clientParamCount;
-				
-				// Check if the parameters to the client have changed.
-				var hasChanged:Boolean = false;
-				for (var i:uint = 0; i < clientParamCount; i++) {
-					if (newArgs[i] != previousArgs[i]) {
-						hasChanged = true;
-						break;
+				var defaultArgs:Array = client.getDefaultState();
+				if (defaultArgs) {
+					delete clientsPendingLoad[client];
+					defaultArgs.length = clientParamCount;
+					
+					// Check if the parameters to the client have changed.
+					var hasChanged:Boolean = false;
+					for (var i:uint = 0; i < clientParamCount; i++) {
+						if (!newArgs[i]) newArgs[i] = defaultArgs[i];
+						if (newArgs[i] != previousArgs[i]) {
+							hasChanged = true;
+							break;
+						}
 					}
+					trace("client: " + client, newArgs);
+					if (hasChanged) client.loadState(newArgs);
+				} else {
+					// Not all clients were ready to load. 
+					stateIsValidFlag = false;
 				}
-				if (hasChanged) client.loadState(newArgs);
 			}
-			clientsPendingLoad = new Dictionary(true);
 			isLoadingState = false;
 		}
 		
@@ -488,20 +492,35 @@ package com.nbilyk.managers {
 		protected function validateBrowserFragment():void {
 			browserFragmentIsValidFlag = true;
 			
-			var frag:String = getFragment();
-			var fragmentSplit:Array = frag.split(separator);
+			var newFragmentSplit:Array = getFragment().split(separator); // Type String
+			var isDefault:Array = new Array(newFragmentSplit.length); // Type Boolean
+			
 			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
-				if (clientsPendingSave[client]) {
-					var clientDepth:uint = client.getClientDepth();
-					var paramCount:uint = client.getParamCount();
-					var clientSave:Array = client.saveState();
-					for (var i:uint = 0; i < paramCount; i++) {
-						fragmentSplit[clientDepth + i] = clientSave[i];
+				var clientDepth:uint = client.getClientDepth();
+				var clientParamCount:uint = client.getParamCount();
+				var newArgs:Array;
+				var defaultArgs:Array = client.getDefaultState();
+				if (defaultArgs && clientsPendingSave[client]) {
+					delete clientsPendingSave[client];
+					newArgs = client.saveState();
+					newArgs.length = clientParamCount;
+					defaultArgs.length = clientParamCount;
+					for (var i:uint = 0; i < clientParamCount; i++) {
+						isDefault[clientDepth + i] = newArgs[i] == defaultArgs[i];
+						newFragmentSplit[clientDepth + i] = newArgs[i];
 					}
 				}
 			}
-			clientsPendingSave = new Dictionary(true);
-			setFragment(fragmentSplit.join(separator), false);
+			
+			// Truncate the fragment so that the url doesn't show default fragment sections:
+			var n:uint = newFragmentSplit.length;
+			while (n) {
+				if (isDefault[n - 1] || !newFragmentSplit[n - 1]) n--;
+				else break;
+			}
+			newFragmentSplit.length = n;
+			
+			setFragment(newFragmentSplit.join(separator), false);
 		}
 		
 		
