@@ -23,5 +23,13 @@ package com.nbilyk.managers {
 		 * @return An array of length getParamCount(). 
 		 */
 		function saveState():Array;
+		
+		/**
+		 * @return An array with the default state of the client. 
+		 * This array should be of length getParamCount().
+		 * Return null if the default state cannot yet be determined. 
+		 * Once the client is ready, call PrettyHistoryManager.load. 
+		 */
+		function getDefaultState():Array;
 	}
 }
