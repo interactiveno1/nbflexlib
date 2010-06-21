@@ -455,7 +455,7 @@ package com.nbilyk.managers {
 				var previousArgs:Array = client.saveState();
 				previousArgs.length = clientParamCount;
 				var defaultArgs:Array = client.getDefaultState();
-				if (defaultArgs) {
+				if (defaultArgs != null) {
 					delete clientsPendingLoad[client];
 					defaultArgs.length = clientParamCount;
 					
@@ -468,7 +468,6 @@ package com.nbilyk.managers {
 							break;
 						}
 					}
-					trace("client: " + client, newArgs);
 					if (hasChanged) client.loadState(newArgs);
 				} else {
 					// Not all clients were ready to load. 

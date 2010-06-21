@@ -117,6 +117,7 @@ package com.nbilyk.display {
 		 * If this is -1, it will be derived based on the number of characters for the message.
 		 */
 		public function showMessage(message:String, isError:Boolean = false, duration:int = -1, priority:int = 0, clickToClose:Boolean = true):void {
+			if (!message) return;
 			paddingLeft = Number(getStyle("paddingLeft"));
 			paddingTop = Number(getStyle("paddingTop"));
 			paddingRight = Number(getStyle("paddingRight"));

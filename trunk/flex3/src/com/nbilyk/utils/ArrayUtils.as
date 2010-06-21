@@ -64,5 +64,24 @@ package com.nbilyk.utils {
 			return newArray;
 		}
 		
+		/**
+		 * Returns the index of an element in an array
+		 * given the property name of the items to search.
+		 * Returns -1 if not found.
+		 */
+		public static function indexOfWithProp(array:Array, prop:String, searchElement:Object):int {
+			var i:int = 0;
+			for each (var value:Object in array) {
+				if (value.hasOwnProperty(prop)) {
+					if (value[prop] == searchElement) {
+						return i;
+					}
+				}
+				i++;
+			}
+			
+			return -1;
+		}
+		
 	}
 }
