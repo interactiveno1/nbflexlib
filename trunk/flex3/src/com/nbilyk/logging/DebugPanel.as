@@ -2,6 +2,7 @@ package com.nbilyk.logging {
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
+	import flash.ui.Keyboard;
 	
 	import mx.containers.HBox;
 	import mx.containers.VBox;
@@ -47,7 +48,7 @@ package com.nbilyk.logging {
 		}
 
 		protected function mainKeyDownHandler(event:KeyboardEvent):void {
-			if (event.ctrlKey && event.keyCode == 187) {
+			if (event.ctrlKey && event.keyCode == Keyboard.F12) {
 				// Ctrl + "="
 				visible = !visible;
 				if (visible)
