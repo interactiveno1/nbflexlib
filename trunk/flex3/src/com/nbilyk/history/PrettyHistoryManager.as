@@ -1,4 +1,4 @@
-package com.nbilyk.managers {
+package com.nbilyk.history {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
@@ -8,11 +8,9 @@ package com.nbilyk.managers {
 	
 	import mx.core.ApplicationGlobals;
 	import mx.core.IUIComponent;
-	import mx.events.BrowserChangeEvent;
 	import mx.events.FlexEvent;
 	import mx.logging.ILogger;
 	import mx.logging.Log;
-	import mx.managers.BrowserManager;
 	
 	/**
 	 * Triggered after the state is validated.  (All clients have loaded state.)
@@ -20,11 +18,13 @@ package com.nbilyk.managers {
 	[Event(name="updateComplete", type="mx.events.FlexEvent")]
 	
 	/**
-	 * Triggered when the URL has changed, either through a browserURLChange event, or by a call to setFragment.
+	 * Triggered when the action has changed, either directly through setting the fragment, or through setting the action.
 	 */
-	[Event(name="urlChanged", type="mx.events.FlexEvent")]
+	[Event(name="actionChange", type="flash.events.Event")]
 	
 	public class PrettyHistoryManager extends EventDispatcher {
+		public static const ACTION_CHANGE:String = "actionChange";
+		
 		public static var separator:String = "/";
 		public static var prefix:String = separator;
 		
@@ -33,12 +33,11 @@ package com.nbilyk.managers {
 		private var pendingFragment:String;
 		private var isLoadingState:Boolean;
 		private var noJs:Boolean;
-		private var _fragment:String = "";
+		private var _action:String = "";
 		
 		// Validation flags
 		private var stateIsValidFlag:Boolean = true;
 		private var browserFragmentIsValidFlag:Boolean = true;
-		private var fragmentIsValidFlag:Boolean;
 		
 		/**
 		 *  An Array of objects that will save and load state information.
@@ -57,7 +56,7 @@ package com.nbilyk.managers {
 		 */
 		private var clientsPendingSave:Dictionary = new Dictionary(true);
 		
-		private var logger:ILogger = Log.getLogger("com.nbilyk.managers.PrettyHistoryManager");
+		private var logger:ILogger = Log.getLogger("com.nbilyk.history.PrettyHistoryManager");
 
 		public static function get instance():PrettyHistoryManager {
 			if (!_instance) _instance = new PrettyHistoryManager(new SingletonEnforcer());
@@ -69,9 +68,6 @@ package com.nbilyk.managers {
 
 			if (_instance) throw new Error("Instance already exists.");
 
-			BrowserManager.getInstance().addEventListener(BrowserChangeEvent.BROWSER_URL_CHANGE, browserUrlChangeHandler);
-			BrowserManager.getInstance().initForHistoryManager();
-			
 			if (!checkJavascriptEnabled()) {
 				logger.info("Javascript unavailable. Only working with explicitly set fragments.");
 			}
@@ -277,45 +273,48 @@ package com.nbilyk.managers {
 			if (!clientValues.length) return null;
 			return clientValues.join(separator);
 		}
-
+		
+		//--------------------------------------
+		// Getters / setters
+		//--------------------------------------
+		
 		/**
-		 * Returns the browser url fragment after the hash.
-		 * Use this instead of BrowserManager.getInstance().fragment
-		 * 
-		 * If the history.js is unavailable, this will use the explicitly set fragment set via setFragment().
+		 *  The browser's fragment.
 		 */
-		public function getFragment():String {
-			if (!fragmentIsValidFlag) {
-				fragment = calculateFragment();
-			}
-			return fragment;
+		[Bindable("actionChange")]
+		public function get fragment():String {
+			return prefix + action;
+		}
+		 
+		public function set fragment(value:String):void {
+			if (value.indexOf(prefix) == 0) action = value.substring(prefix.length); // Cut off the prefix.
+			else action = "";
+			refresh();
 		}
 		
 		/**
-		 * Calculates the fragment from the url. 
-		 * Fix to work with Chrome
-		 * If the history.js is unavailable, this will use the explicitly set fragment set via setFragment().
+		 * The browser's fragment without the prefix.
 		 */
-		private function calculateFragment():String {
-			if (noJs) return fragment;
-			if (ExternalInterface.available) {
-				var url:String = ExternalInterface.call("eval", "window.location.href");
-				if (url) {
-					var urlSplit:Array = url.split("#" + prefix);
-					if (urlSplit.length >= 2) return urlSplit[1];
-				} else {
-					noJs = true;
-					return fragment;
-				}
-			} else {
-				noJs = true;
-				return fragment;
-			}
-			return "";
+		[Bindable("actionChange")]
+		private function get action():String {
+			return _action;
+		}
+		private function set action(value:String):void {
+			if (_action == value) return; // no-op
+			_action = value;
+			dispatchEvent(new Event(ACTION_CHANGE));
 		}
 		
 		/**
-		 * A helper method to set the BrowserManager fragment.
+		 * The browser's fragment without the prefix.
+		 */
+		[Bindable("actionChange")]
+		public function getAction():String {
+			return _action;
+		}
+		
+		/**
+		 * A helper method to set the Browser fragment.
 		 * 
 		 * @var newFragment The new fragment to place in the url.
 		 * @var doRefresh If true, invalidates the state and therefore calls loadState on all registered objects.
@@ -324,11 +323,8 @@ package com.nbilyk.managers {
 		public function setFragment(newFragment:String = "", doRefresh:Boolean = true):void {
 			pendingFragment = null;
 			newFragment = sanitizeFragment(newFragment);
-			fragment = newFragment;
-			BrowserManager.getInstance().setFragment(prefix + newFragment);
-			app.resetHistory = true;
+			action = newFragment;
 			if (doRefresh) refresh();
-			dispatchEvent(new FlexEvent(FlexEvent.URL_CHANGED));
 		}
 		
 		/**
@@ -386,30 +382,6 @@ package com.nbilyk.managers {
 			invalidateState();
 		}
 		
-		/**
-		 * The cached fragment property.
-		 */
-		private function get fragment():String {
-			return _fragment;
-		}
-		private function set fragment(value:String):void {
-			fragmentIsValidFlag = true;
-			_fragment = value;
-		}
-		
-		//----------------------
-		//  Event handlers
-		//----------------------
-
-		/**
-		 *  The browser's url has changed.
-		 */
-		private function browserUrlChangeHandler(event:BrowserChangeEvent):void {
-			if (!app.historyManagementEnabled) return;
-			fragmentIsValidFlag = false;
-			refresh();
-			dispatchEvent(new FlexEvent(FlexEvent.URL_CHANGED));
-		}
 		
 		//--------------------------
 		// Validation methods
@@ -444,7 +416,7 @@ package com.nbilyk.managers {
 			stateIsValidFlag = true;
 			if (!app.historyManagementEnabled) return;
 			isLoadingState = true;
-			var fragmentSplit:Array = getFragment().split(separator);
+			var fragmentSplit:Array = action.split(separator);
 			var fragmentSplitL:uint = fragmentSplit.length;
 			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
 				if (!clientsPendingLoad[client]) continue;
@@ -491,7 +463,7 @@ package com.nbilyk.managers {
 		protected function validateBrowserFragment():void {
 			browserFragmentIsValidFlag = true;
 			
-			var newFragmentSplit:Array = getFragment().split(separator); // Type String
+			var newFragmentSplit:Array = action.split(separator); // Type String
 			var isDefault:Array = new Array(newFragmentSplit.length); // Type Boolean
 			
 			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
