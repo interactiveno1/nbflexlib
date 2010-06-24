@@ -44,12 +44,14 @@ package {
 		import com.nbilyk.display.IPreloader; IPreloader;
 		import com.nbilyk.effects.BitmapEffect; BitmapEffect;
 		import com.nbilyk.effects.bitmaptransitions.BitmapWipeTransition; BitmapWipeTransition;
-		import com.nbilyk.managers.IPrettyHistoryManagerClient; IPrettyHistoryManagerClient;
+		import com.nbilyk.history.IPrettyHistoryManagerClient; IPrettyHistoryManagerClient;
 		import com.nbilyk.effects.BitmapFadeEffect; BitmapFadeEffect;
 		import com.nbilyk.utils.QueuedEvent; QueuedEvent;
-		import com.nbilyk.managers.PrettyHistoryManager; PrettyHistoryManager;
+		import com.nbilyk.history.PrettyHistoryManager; PrettyHistoryManager;
 		import com.nbilyk.utils.ListRecycler; ListRecycler;
 		import com.nbilyk.logging.DebugPanel; DebugPanel;
 		import com.nbilyk.utils.KeyboardTabFocusScroller; KeyboardTabFocusScroller;
+		import com.nbilyk.naddress.NAddress; NAddress;
+		import com.nbilyk.naddress.NAddressPrettyHistory; NAddressPrettyHistory;
 	}
 }

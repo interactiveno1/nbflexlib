@@ -1,4 +1,4 @@
-package com.nbilyk.managers {
+package com.nbilyk.history {
 
 	public interface IPrettyHistoryManagerClient {
 		
