@@ -14,9 +14,11 @@ package com.nbilyk.naddress {
 		public function NAddress(s:SingletonEnforcer) {
 			super();
 			if (ExternalInterface.available) {
-				_fragment = ExternalInterface.call("SWFAddress.getValue");;
+				_fragment = ExternalInterface.call("SWFAddress.getValue");
 				jsIsAvailable = !!_fragment;
-				if (jsIsAvailable) ExternalInterface.addCallback("setSWFAddressValue", fragmentChangeHandler);
+				if (jsIsAvailable) {
+					ExternalInterface.addCallback("setSWFAddressValue", fragmentChangeHandler);
+				}
 			}
 		}
 		
