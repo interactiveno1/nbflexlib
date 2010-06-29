@@ -13,11 +13,10 @@ package com.nbilyk.utils {
 		
 		private var _currentEvent:QueuedEvent;
 		private var _events:Array; /* Type QueuedEvent */
-		private var dispatcher:EventDispatcher;
+		private var _isPaused:Boolean;
 
 		public function EventQueue() {
-			dispatcher = new EventDispatcher(this);
-			_events = new Array();
+			setEvents(new Array());
 		}
 		
 		/**
@@ -25,14 +24,14 @@ package com.nbilyk.utils {
 		 */
 		public function addEvent(queuedEvent:QueuedEvent):void {
 			var index:uint = getPriorityIndex(queuedEvent.priority);
-			_events.splice(index, 0, queuedEvent);
+			events.splice(index, 0, queuedEvent);
 			
 			if (!queuedEvent.completed) {
 				queuedEvent.addEventListener(QueuedEvent.PRIORITY_CHANGE, priorityChangeHandler, false, 0, true);
 				queuedEvent.addEventListener(QueuedEvent.CALL, calledHandler, false, 0, true);
 				queuedEvent.addEventListener(QueuedEvent.COMPLETE, completeHandler, false, 0, true);
 			}
-			if (_currentEvent == null) doNextEvent();
+			if (currentEvent == null) doNextEvent();
 		}
 		
 		/**
@@ -41,7 +40,7 @@ package com.nbilyk.utils {
 		protected function getPriorityIndex(priority:int):uint {
 			var index:uint = length;
 			if (index == 0) return 0;
-			while (index > 0 && (_events[index - 1] as QueuedEvent).priority < priority) index--;
+			while (index > 0 && (events[index - 1] as QueuedEvent).priority < priority) index--;
 			return index;
 		}
 		
@@ -52,9 +51,9 @@ package com.nbilyk.utils {
 			if (queuedEvent == null) {
 				return removeEventByIndex(0); // Remove the next event in the queue.
 			}
-			var index:int = _events.indexOf(queuedEvent);
+			var index:int = events.indexOf(queuedEvent);
 			if (index == -1) return false;
-			_events.splice(index, 1);
+			events.splice(index, 1);
 			return true;
 		}
 		
@@ -62,8 +61,8 @@ package com.nbilyk.utils {
 		 * Removes the event at [index] from the queue.
 		 */
 		public function removeEventByIndex(index:int):Boolean {
-			if (index > _events.length - 1) return false;
-			_events.splice(index, 1);
+			if (index > events.length - 1) return false;
+			events.splice(index, 1);
 			return true;
 		}
 		
@@ -71,18 +70,19 @@ package com.nbilyk.utils {
 		 * Removes all events from the queue.
 		 */
 		public function removeAllEvents():void {
-			_events = new Array();
-			_currentEvent = null;
+			setEvents(new Array());
+			setCurrentEvent(null);
 		}
+		
 		protected function doNextEvent():void {
-			if (length == 0) return;
+			if (length == 0 || currentEvent || isPaused) return;
 			
 			var evt:Event = new Event(NEXT_EVENT);
 			dispatchEvent(evt);
 			
-			var queuedEvent:QueuedEvent = (_events[0] as QueuedEvent);
+			var queuedEvent:QueuedEvent = (events[0] as QueuedEvent);
 			if (!queuedEvent.hasBeenCalled && !queuedEvent.completed) {
-				_currentEvent = queuedEvent;
+				setCurrentEvent(queuedEvent);
 				queuedEvent.call();
 				
 				if (queuedEvent.dontWait) {
@@ -90,7 +90,7 @@ package com.nbilyk.utils {
 					queuedEvent.complete();
 				}
 			} else {
-				_events.shift();
+				events.shift();
 			}
 		}
 		
@@ -98,25 +98,29 @@ package com.nbilyk.utils {
 		 * Completes the event at index 0.
 		 */
 		public function completeEvent():void {
-			if (_currentEvent == null) {
+			if (currentEvent == null) {
 				trace("EventQueue Warning: no event available to complete."); 
 			} else {
-				_currentEvent.complete();
+				currentEvent.complete();
 			}
 		}
+		
+		//---------------------------
+		// Getters / setters
+		//---------------------------
 		
 		/**
 		 * Returns true if there are no events left in the queue.
 		 */
 		public function get isEmpty():Boolean {
-			return _events.length == 0;
+			return events.length == 0;
 		}
 		
 		/**
 		 * The number of items in the queue.
 		 */
 		public function get length():uint {
-			return _events.length;
+			return events.length;
 		}
 		
 		/**
@@ -126,26 +130,49 @@ package com.nbilyk.utils {
 			return _currentEvent;	
 		}
 		
-		/**
-		 * Returns an array of QueuedEvent objects.
-		 */
-		public function get events():Array /* Type QueuedEvent */ {
-			return _events;
+		protected function setCurrentEvent(value:QueuedEvent):void {
+			_currentEvent = value;
 		}
 		
 		/**
-		 * QueuedEvent has been completed
+		 * Returns an array of QueuedEvent objects.
 		 */
-		private function eventCompleted(queuedEvent:QueuedEvent):void {
-			if (queuedEvent == _currentEvent) {
-				_currentEvent = null;
-				if (_events.length == 0) {
-					var evt:Event = new Event(COMPLETE);
-					dispatchEvent(evt);
-				} else {
-					doNextEvent();
-				}
+		[ArrayElementType("com.nbilyk.utils.QueuedEvent")]
+		public function get events():Array {
+			return _events;
+		}
+		
+		protected function setEvents(value:Array):void {
+			_events = value;
+		}
+		
+		/**
+		 * If isPaused is true, the next event will not be called on completion.
+		 */
+		public function get isPaused():Boolean {
+			return _isPaused;
+		}
+		
+		public function set isPaused(value:Boolean):void {
+			if (_isPaused == value) return; // no-op
+			_isPaused = value;
+			if (!value) {
+				doNextEvent();
 			}
+		}
+		
+		/**
+		 * Sets isPaused to true.
+		 */
+		public function pause():void {
+			isPaused = true;
+		}
+		
+		/**
+		 * Sets isPaused to false.
+		 */
+		public function resume():void {
+			isPaused = false;
 		}
 		
 		//-----------------------------------
@@ -160,20 +187,20 @@ package com.nbilyk.utils {
 			var hasBeenRemoved:Boolean = removeEvent(targetEvent);
 			if (hasBeenRemoved) {
 				var index:uint = getPriorityIndex(targetEvent.priority);
-				_events.splice(index, 0, targetEvent);
+				events.splice(index, 0, targetEvent);
 			}
 		}
 		
 		/**
-		 * QueuedEvent has been called, remove it from the _events Array
+		 * QueuedEvent has been called, remove it from the events Array
 		 */
 		private function calledHandler(event:Event):void {
 			var queuedEvent:QueuedEvent = event.currentTarget as QueuedEvent;
 			queuedEvent.removeEventListener(event.type, calledHandler);
 			
-			var index:int = _events.indexOf(queuedEvent);
+			var index:int = events.indexOf(queuedEvent);
 			if (index != -1) {
-				_events.splice(index, 1);
+				events.splice(index, 1);
 			}
 		}
 		
@@ -184,6 +211,21 @@ package com.nbilyk.utils {
 			var queuedEvent:QueuedEvent = event.currentTarget as QueuedEvent;
 			queuedEvent.removeEventListener(event.type, completeHandler);
 			eventCompleted(queuedEvent);
+		}
+		
+		/**
+		 * QueuedEvent has been completed
+		 */
+		private function eventCompleted(queuedEvent:QueuedEvent):void {
+			if (queuedEvent == currentEvent) {
+				setCurrentEvent(null);
+				if (events.length == 0) {
+					var evt:Event = new Event(COMPLETE);
+					dispatchEvent(evt);
+				} else {
+					doNextEvent();
+				}
+			}
 		}
 	}
 }

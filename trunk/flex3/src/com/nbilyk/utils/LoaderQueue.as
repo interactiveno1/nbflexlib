@@ -8,22 +8,18 @@ package com.nbilyk.utils {
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
+	import flash.utils.Dictionary;
 	
 	public class LoaderQueue {
 		private static const BINARY_FORMATS:String = "swf jpg gif png";
 		
-		private static var _instance:LoaderQueue;
-		
-		protected var eq:EventQueue;
+		protected var eQ:EventQueue;
 
-		public function LoaderQueue(s:SingletonEnforcer) {
+		public function LoaderQueue() {
 			super();
-			eq = new EventQueue();
+			eQ = new EventQueue();
 		}
-		public static function get instance():LoaderQueue {
-			if (!_instance) _instance = new LoaderQueue(new SingletonEnforcer());
-			return _instance;
-		}
+		
 		public function queueRequest(urlRequest:URLRequest, priority:int = 0, preloader:IPreloader = null, dataFormat:String = ""):QueuedUrlLoaderEvent {
 			var queuedUrlLoaderEvent:QueuedUrlLoaderEvent;
 			
@@ -51,27 +47,55 @@ package com.nbilyk.utils {
 			}
 			queuedUrlLoaderEvent.priority = priority;
 			queuedUrlLoaderEvent.preloader = preloader;
-			eq.addEvent(queuedUrlLoaderEvent);
+			eQ.addEvent(queuedUrlLoaderEvent);
 			
 			return queuedUrlLoaderEvent;
 		}
+		
 		public function getQueuedUrlLoaderByURLRequest(urlRequest:URLRequest):QueuedUrlLoaderEvent {
-			var allEvents:Array = eq.events.concat(eq.currentEvent);
+			var allEvents:Array = eQ.events.concat(eQ.currentEvent);
 			
-			var numEvents:int = allEvents.length;
-			for (var i:int = 0; i < numEvents; i++) {
-				if (allEvents[i] is QueuedUrlLoaderEvent) {
-					var iEvent:QueuedUrlLoaderEvent = QueuedUrlLoaderEvent(allEvents[i]);
-					if (ObjectUtils.compare(urlRequest, iEvent.urlRequest)) {
-						return iEvent;
+			for each (var iEvent:QueuedEvent in allEvents) {
+				if (iEvent is QueuedUrlLoaderEvent) {
+					if (ObjectUtils.compare(urlRequest, QueuedUrlLoaderEvent(iEvent).urlRequest)) {
+						return QueuedUrlLoaderEvent(iEvent);
 					}
 				}
 			}
 			return null;
 		}
-		public function removeLoaderEvent(queuedEvent:QueuedEvent):Boolean {
-			return eq.removeEvent(queuedEvent);
+		
+		public function removeLoaderEvent(queuedEvent:QueuedUrlLoaderEvent):Boolean {
+			return eQ.removeEvent(queuedEvent);
+		}
+		
+		//--------------------------------
+		// Event queue wrapper methods.
+		//--------------------------------
+		
+		/**
+		 * If isPaused is true, the next event will not be called on completion.
+		 */
+		public function get isPaused():Boolean {
+			return eQ.isPaused;
+		}
+		
+		public function set isPaused(value:Boolean):void {
+			eQ.isPaused = value;
+		}
+		
+		/**
+		 * Sets isPaused to true.
+		 */
+		public function pause():void {
+			eQ.isPaused = true;
+		}
+		
+		/**
+		 * Sets isPaused to false.
+		 */
+		public function resume():void {
+			eQ.isPaused = false;
 		}
 	}
 }
-class SingletonEnforcer {}

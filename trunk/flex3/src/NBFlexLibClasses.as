@@ -28,6 +28,7 @@ package {
 		import com.nbilyk.effects.effectclasses.BitmapWipeEffectInstance; BitmapWipeEffectInstance;
 		import com.nbilyk.events.QueuedUrlLoaderEvent; QueuedUrlLoaderEvent;
 		import com.nbilyk.utils.EventQueue; EventQueue;
+		import com.nbilyk.utils.LoaderQueueManager; LoaderQueueManager;
 		import com.nbilyk.effects.effectclasses.BitmapFadeEffectInstance; BitmapFadeEffectInstance;
 		import com.nbilyk.display.QueuedImage; QueuedImage;
 		import com.nbilyk.display.CSSComponent; CSSComponent;

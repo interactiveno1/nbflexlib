@@ -7,7 +7,7 @@ package com.nbilyk.display {
 	import com.nbilyk.events.QueuedUrlLoaderEvent;
 	import com.nbilyk.utils.FunctionUtils;
 	import com.nbilyk.utils.LoaderQueue;
-
+	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Loader;
@@ -16,7 +16,7 @@ package com.nbilyk.display {
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.net.URLRequest;
-
+	
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 
@@ -25,25 +25,31 @@ package com.nbilyk.display {
 	public class QueuedImage extends MovieClip {
 		public static const IMAGE_LOAD_FAIL:String = "imageLoadFail";
 
-		private var _isLoaded:Boolean = false;
-		private var _hasErred:Boolean = false;
-		private var _queuedLoaderEvent:QueuedUrlLoaderEvent;
-		protected var _imageLoader:Loader;
-		private var _preloader:IPreloader;
 
+
+		public static var LEFT:int = 0;
+		public static var CENTER:int = 1;
+		public static var RIGHT:int = 2;
+		public static var TOP:int = 0;
+		public static var MIDDLE:int = 1;
+		public static var BOTTOM:int = 2;
+		
 		// Config
 		public var pixelSnapping:String = PixelSnapping.AUTO;
 		public var smoothing:Boolean = false;
 		public var useAnimations:Boolean = false; // TODO: Temp;
-
-		public var hAlign:int = 0;
-		public static var LEFT:int = 0;
-		public static var CENTER:int = 1;
-		public static var RIGHT:int = 2;
+		
 		public var vAlign:int = 0;
-		public static var TOP:int = 0;
-		public static var MIDDLE:int = 1;
-		public static var BOTTOM:int = 2;
+		public var hAlign:int = 0;
+		
+		protected var loaderQueue:LoaderQueue;
+		
+		private var _imageLoader:Loader;
+		private var _isLoaded:Boolean = false;
+		private var _hasErred:Boolean = false;
+		private var _queuedLoaderEvent:QueuedUrlLoaderEvent;
+		private var _preloader:IPreloader;
+		
 		private var _image:String;
 		private var _minWidth:Number;
 		private var _minHeight:Number;
@@ -52,14 +58,15 @@ package com.nbilyk.display {
 
 		private var logger:ILogger = Log.getLogger("com.nbilyk.display.QueuedImage");
 
-		public function QueuedImage() {
+		public function QueuedImage(loaderQueueVal:LoaderQueue) {
 			super();
+			loaderQueue = loaderQueueVal;
 		}
 
 		public function clear():void {
 			if (!_queuedLoaderEvent.completed) {
 				removeLoaderListeners();
-				LoaderQueue.instance.removeLoaderEvent(_queuedLoaderEvent);
+				loaderQueue.removeLoaderEvent(_queuedLoaderEvent);
 			} else {
 				try {
 					if (imageLoader && imageLoader.parent) removeChild(imageLoader);
@@ -72,11 +79,11 @@ package com.nbilyk.display {
 
 		public function load(urlRequest:URLRequest, priority:int = 0):void {
 			_hasErred = false;
-			_isLoaded = false;
+			setIsLoaded(false);
 			if (_queuedLoaderEvent) {
 				clear();
 			}
-			_queuedLoaderEvent = LoaderQueue.instance.queueRequest(urlRequest, priority, _preloader);
+			_queuedLoaderEvent = loaderQueue.queueRequest(urlRequest, priority, preloader);
 			addLoaderListeners();
 			_queuedLoaderEvent.buildLoader();
 		}
@@ -103,13 +110,13 @@ package com.nbilyk.display {
 		}
 
 		protected function loaderCreationCompleteHandler(event:LoaderCreationEvent):void {
-			_isLoaded = true;
+			setIsLoaded(true);
 
-			_imageLoader = event.loader;
+			setImageLoader(event.loader);
 			// Set pixelSnapping and smoothing on bitmap data.
 			try {
-				if (_imageLoader.contentLoaderInfo.childAllowsParent) {
-					var bitmap:Bitmap = Bitmap(_imageLoader.contentLoaderInfo.content);
+				if (imageLoader.contentLoaderInfo.childAllowsParent) {
+					var bitmap:Bitmap = Bitmap(imageLoader.contentLoaderInfo.content);
 					bitmap.pixelSnapping = pixelSnapping;
 					bitmap.smoothing = smoothing;
 				} else {
@@ -119,7 +126,7 @@ package com.nbilyk.display {
 			}
 
 			draw();
-			if (_preloader) _preloader.hide();
+			if (preloader) preloader.hide();
 			addChild(imageLoader);
 			dispatchEvent(new Event(Event.COMPLETE));
 		}
@@ -135,9 +142,74 @@ package com.nbilyk.display {
 			_hasErred = true;
 			dispatchEvent(new Event(IMAGE_LOAD_FAIL));
 		}
+		
+		//-------------------------------
+		// Validation / invalidation
+		//-------------------------------
+		
+		public function invalidate():void {
+			var allowPass:Boolean = FunctionUtils.limit(invalidate);
+			if (!allowPass)
+				return;
+			draw();
+		}
+
+		protected function draw():void {
+			var iL:Loader = imageLoader;
+			if (isLoaded) {
+				iL.scaleX = 1;
+				iL.scaleY = 1;
+
+				// Handle min dimensions
+				if (minWidth && iL.width < minWidth) {
+					iL.width = minWidth;
+				}
+				if (minHeight && iL.height < minHeight) {
+					iL.height = minHeight;
+				}
+				if (minWidth || minHeight) {
+					var largerScale:Number = Math.max(iL.scaleX, iL.scaleY);
+					iL.scaleX = largerScale;
+					iL.scaleY = largerScale;
+				}
+				// Handle max dimensions
+				if (maxWidth && iL.width > maxWidth) {
+					iL.width = maxWidth;
+					iL.scaleY = iL.scaleX;
+				}
+				if (maxHeight && iL.height > maxHeight) {
+					iL.height = maxHeight;
+					iL.scaleX = iL.scaleY;
+				}
+				iL.x = 0;
+				if (maxWidth) {
+					if (hAlign == CENTER) {
+						iL.x = maxWidth / 2 - iL.width / 2;
+					} else if (hAlign == RIGHT) {
+						iL.x = maxWidth - iL.width;
+					}
+				}
+				iL.y = 0;
+				if (maxHeight) {
+					if (vAlign == MIDDLE) {
+						iL.y = maxHeight / 2 - iL.height / 2;
+					} else if (vAlign == BOTTOM) {
+						iL.y = maxHeight - iL.height;
+					}
+				}
+			}
+		}
+		
+		//-----------------------
+		// Getters / setters
+		//-----------------------
 
 		public function get imageLoader():Loader {
 			return _imageLoader;
+		}
+		
+		protected function setImageLoader(value:Loader):void {
+			_imageLoader = value;
 		}
 
 		public function get minWidth():Number {
@@ -177,27 +249,31 @@ package com.nbilyk.display {
 		}
 
 		public function get imageWidth():Number {
-			if (_isLoaded)
-				return _imageLoader.width;
+			if (isLoaded)
+				return imageLoader.width;
 			return -1;
 		}
 
 		public function get imageHeight():Number {
-			if (_isLoaded)
-				return _imageLoader.height;
+			if (isLoaded)
+				return imageLoader.height;
 			return -1;
 		}
 
 		public function get imageX():Number {
-			return _imageLoader.x;
+			return imageLoader.x;
 		}
 
 		public function get imageY():Number {
-			return _imageLoader.y;
+			return imageLoader.y;
 		}
 
 		public function get isLoaded():Boolean {
 			return _isLoaded;
+		}
+		
+		protected function setIsLoaded(value:Boolean):void {
+			_isLoaded = value;
 		}
 
 		public function get hasErred():Boolean {
@@ -219,68 +295,12 @@ package com.nbilyk.display {
 		}
 
 		public function getBitmapData():BitmapData {
-			if (_imageLoader && _imageLoader.contentLoaderInfo.childAllowsParent) {
-				return Bitmap(_imageLoader.content).bitmapData.clone();
+			if (imageLoader && imageLoader.contentLoaderInfo.childAllowsParent) {
+				return Bitmap(imageLoader.content).bitmapData.clone();
 			} else {
 				return null;
 			}
 			return null;
-		}
-
-		protected function draw():void {
-			if (_isLoaded) {
-				_imageLoader.scaleX = 1;
-				_imageLoader.scaleY = 1;
-
-				// Handle min dimensions
-				if (minWidth && _imageLoader.width < minWidth) {
-					_imageLoader.width = minWidth;
-				}
-				if (minHeight && _imageLoader.height < minHeight) {
-					_imageLoader.height = minHeight;
-				}
-				if (minWidth || minHeight) {
-					var largerScale:Number = Math.max(_imageLoader.scaleX, _imageLoader.scaleY);
-					_imageLoader.scaleX = largerScale;
-					_imageLoader.scaleY = largerScale;
-				}
-				// Handle max dimensions
-				if (maxWidth && _imageLoader.width > maxWidth) {
-					_imageLoader.width = maxWidth;
-					_imageLoader.scaleY = _imageLoader.scaleX;
-				}
-				if (maxHeight && _imageLoader.height > maxHeight) {
-					_imageLoader.height = maxHeight;
-					_imageLoader.scaleX = _imageLoader.scaleY;
-				}
-				_imageLoader.x = 0;
-				if (maxWidth) {
-					if (hAlign == CENTER) {
-						_imageLoader.x = maxWidth / 2 - _imageLoader.width / 2;
-					} else if (hAlign == RIGHT) {
-						_imageLoader.x = maxWidth - _imageLoader.width;
-					}
-				}
-				_imageLoader.y = 0;
-				if (maxHeight) {
-					if (vAlign == MIDDLE) {
-						_imageLoader.y = maxHeight / 2 - _imageLoader.height / 2;
-					} else if (vAlign == BOTTOM) {
-						_imageLoader.y = maxHeight - _imageLoader.height;
-					}
-				}
-			}
-		}
-
-		public function drawNow():void {
-			draw();
-		}
-
-		public function invalidate():void {
-			var allowPass:Boolean = FunctionUtils.limit(invalidate);
-			if (!allowPass)
-				return;
-			draw();
 		}
 	}
 }

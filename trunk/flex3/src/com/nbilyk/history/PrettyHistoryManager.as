@@ -299,6 +299,7 @@ package com.nbilyk.history {
 		private function get action():String {
 			return _action;
 		}
+		
 		private function set action(value:String):void {
 			if (_action == value) return; // no-op
 			_action = value;

@@ -25,6 +25,25 @@ package com.nbilyk.utils {
 		}
 		
 		/**
+		 * Takes objectB and merges it into objectA. 
+		 */
+		public static function mergeObjects(objectA:*, objectB:*, transferNulls:Boolean = false, useCache:Boolean = true):void {
+			if (getQualifiedClassName(objectA) != getQualifiedClassName(objectB)) throw new ArgumentError("objectA and objectB are not the same type.");
+			var typeXml:XML;
+			if (useCache) {
+				typeXml = DescribeTypeCache.describeType(objectA).typeDescription;
+			} else {
+				typeXml = describeType(objectA);
+			}
+			var properties:XMLList = typeXml.children().((name() == "accessor" && @access == "readwrite") || name() == "variable");
+			for each (var property:XML in properties) {
+				if (transferNulls || objectB[property.@name] != null) {
+					objectA[property.@name] = objectB[property.@name];
+				}
+			}
+		}
+		
+		/**
 		 * Compares two generic objects and returns true of all recursive properties match.
 		 */
 		public static function compare(objectA:Object, objectB:Object):Boolean {
@@ -52,31 +71,6 @@ package com.nbilyk.utils {
 		}
 		
 		/**
-		 * Takes objectB and merges it into objectA. 
-		 */
-		public static function mergeObjects(objectA:*, objectB:*, transferNulls:Boolean = false, useCache:Boolean = true):void {
-			if (getQualifiedClassName(objectA) != getQualifiedClassName(objectB)) throw new ArgumentError("objectA and objectB are not the same type.");
-			var typeXml:XML;
-			if (useCache) {
-				typeXml = DescribeTypeCache.describeType(objectA).typeDescription;
-			} else {
-				typeXml = describeType(objectA);
-			}
-			for each (var variable:XML in typeXml.variable) {
-				if (transferNulls || objectB[variable.@name] != null) {
-					objectA[variable.@name] = objectB[variable.@name];
-				}
-			}
-			for each (var accessor:XML in typeXml.accessor) {
-				if (accessor.@access == "readwrite") {
-					if (transferNulls || objectB[accessor.@name] != null) {
-						objectA[accessor.@name] = objectB[accessor.@name];
-					}
-				}
-			}
-		}
-		
-		/**
 		 * Like compare, except only primitive types matter.  
 		 * If objectA has a child object with no values and objectB doesn't have that object, 
 		 * they still compare as true because no primitive types had to be evaluated.
@@ -90,6 +84,7 @@ package com.nbilyk.utils {
 			if (!comparison) return false;
 			return true;
 		}
+		
 		private static function recursiveCompare(nestedObject:Object, nestedNames:Array, objectB:Object, recursionDict:Dictionary = null):Boolean {
 			if (!recursionDict) recursionDict = new Dictionary(true);
 			if (recursionDict[nestedObject]) return true;
