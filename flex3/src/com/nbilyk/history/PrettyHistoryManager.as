@@ -287,6 +287,7 @@ package com.nbilyk.history {
 		}
 		 
 		public function set fragment(value:String):void {
+			if (value == null) value = "";
 			if (value.indexOf(prefix) == 0) action = value.substring(prefix.length); // Cut off the prefix.
 			else action = "";
 			refresh();
