@@ -5,108 +5,52 @@
 package com.nbilyk.display {
 	import com.nbilyk.utils.EventQueue;
 	import com.nbilyk.utils.QueuedEvent;
-
+	
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.utils.clearTimeout;
+	import flash.utils.getTimer;
 	import flash.utils.setTimeout;
-
+	
 	import mx.containers.HBox;
 	import mx.controls.Text;
 	import mx.core.ApplicationGlobals;
 	import mx.core.UIComponent;
-	import mx.effects.IEffect;
-	import mx.effects.Move;
 	import mx.effects.easing.Sine;
-	import mx.events.EffectEvent;
-	import mx.styles.CSSStyleDeclaration;
-	import mx.styles.StyleManager;
 
-	[Style(name="messageStyleName",type="String")]
-	[Style(name="errorMessageStyleName",type="String")]
 	[Style(name="paddingLeft",type="Number")]
 	[Style(name="paddingTop",type="Number")]
 	[Style(name="paddingRight",type="Number")]
-	[Style(name="paddingBottom",type="Number")]
-
-	[Effect(name="showEffect",event="show")]
-	[Effect(name="hideEffect",event="hide")]
+	[Style(name="messageStyleName",type="String")]
+	[Style(name="errorMessageStyleName",type="String")]
 	public class MessageNotifier extends CSSComponent {
-		public static const TOP:uint = 0;
-		public static const BOTTOM:uint = 1;
-
 		private var eventQueue:EventQueue = new EventQueue();
-		private var location:uint;
-
-		private var paddingLeft:Number;
-		private var paddingTop:Number;
-		private var paddingRight:Number;
-		private var paddingBottom:Number;
-
-		private var defaultShowEffect:Move;
-		private var defaultHideEffect:Move;
 
 		private var componentHideTimeout:int;
 		[ArrayElementType("flash.filters.BitmapFilter")]
 		public var messageFilters:Array = [];
+		
+		/**
+		 * The duration of the show transition in milliseconds.
+		 */
+		public var tweenDuration:Number = 400;
+		
+		/**
+		 * The easing function of the tween.  Will be reversed on ease out.
+		 * This method must have the following signature:
+		 *   @param t Specifies time.
+		 *   @param b Specifies the initial position of a component.
+		 *   @param c Specifies the total change in position of the component.
+		 *   @param d Specifies the duration of the effect, in milliseconds.
+		 *   @return Number corresponding to the position of the component.
+		 */  
+		public var tweenEase:Function = Sine.easeIn;
+		
+		private var startTime:Number;
+		private var isReversed:Boolean;
 
-		public function MessageNotifier(locationVal:uint = TOP) {
+		public function MessageNotifier() {
 			super();
-			location = locationVal;
-
-			// Default styles and effects
-			defaultShowEffect = new Move();
-			defaultShowEffect.duration = 400;
-			defaultShowEffect.easingFunction = Sine.easeOut;
-
-			defaultHideEffect = new Move();
-			defaultHideEffect.duration = 400;
-			defaultHideEffect.easingFunction = Sine.easeIn;
-
-			var messageNotifierCss:CSSStyleDeclaration = new CSSStyleDeclaration("MessageNotifier");
-			if (messageNotifierCss.defaultFactory == null) {
-				messageNotifierCss.defaultFactory = function():void {
-					this.showEffect = defaultShowEffect;
-					this.hideEffect = defaultHideEffect;
-					this.paddingLeft = 10;
-					this.paddingTop = 10;
-					this.paddingRight = 10;
-					this.paddingBottom = 10;
-					this.messageStyleName = "messageStyle82";
-					this.errorMessageStyleName = "errorMessageStyle82";
-					this.closeButtonStyleName = "messageNotifierCloseButton82";
-				};
-				StyleManager.setStyleDeclaration("MessageNotifier", messageNotifierCss, true);
-
-				var messageCss:CSSStyleDeclaration = new CSSStyleDeclaration(".messageStyle82");
-				messageCss.defaultFactory = function():void {
-					this.paddingLeft = 3;
-					this.paddingTop = 3;
-					this.paddingRight = 3;
-					this.paddingBottom = 3;
-					this.borderStyle = "solid";
-					this.borderThickness = 2;
-					this.cornerRadius = 8;
-					this.backgroundColor = 0xFFFFFF;
-					this.fontWeight = "bold";
-				};
-				StyleManager.setStyleDeclaration(".messageStyle82", messageCss, true);
-
-				var errorMessageCss:CSSStyleDeclaration = new CSSStyleDeclaration(".errorMessageStyle82");
-				errorMessageCss.defaultFactory = function():void {
-					this.paddingLeft = 3;
-					this.paddingTop = 3;
-					this.paddingRight = 3;
-					this.paddingBottom = 3;
-					this.borderStyle = "solid";
-					this.borderThickness = 2;
-					this.cornerRadius = 8;
-					this.backgroundColor = 0xFFFFFF;
-					this.fontWeight = "bold";
-					this.color = 0xFF0000;
-				};
-				StyleManager.setStyleDeclaration(".errorMessageStyle82", errorMessageCss, true);
-			}
 		}
 
 		/**
@@ -118,19 +62,12 @@ package com.nbilyk.display {
 		 */
 		public function showMessage(message:String, isError:Boolean = false, duration:int = -1, priority:int = 0, clickToClose:Boolean = true):void {
 			if (!message) return;
-			paddingLeft = Number(getStyle("paddingLeft"));
-			paddingTop = Number(getStyle("paddingTop"));
-			paddingRight = Number(getStyle("paddingRight"));
-			paddingBottom = Number(getStyle("paddingBottom"));
-
 			var text:Text = new Text();
 			text.htmlText = message;
 			text.percentWidth = 100;
 			var hBox:HBox = new HBox();
 			hBox.addChild(text);
 			hBox.styleName = (isError) ? getStyle("errorMessageStyleName") : getStyle("messageStyleName");
-			hBox.setStyle("left", paddingLeft);
-			hBox.setStyle("right", paddingRight);
 			if (clickToClose) {
 				text.selectable = false;
 				text.useHandCursor = true;
@@ -139,12 +76,11 @@ package com.nbilyk.display {
 				hBox.useHandCursor = true;
 				hBox.buttonMode = true;
 				hBox.toolTip = "Click to close";
-				hBox.addEventListener(MouseEvent.CLICK, closeMessageHandler, false, 0, true);
+				hBox.addEventListener(MouseEvent.CLICK, componentClickHandler, false, 0, true);
 			}
 			hBox.filters = messageFilters;
 
-			if (duration == -1)
-				duration = Math.min(15000, Math.max(message.length / 30 * 1000 + 500, 1000));
+			if (duration == -1) duration = Math.min(15000, Math.max(message.length * 30 + 2000, 1000));
 			showComponent(hBox, duration, priority);
 		}
 		
@@ -152,81 +88,58 @@ package com.nbilyk.display {
 		 * Adds a component to the queue to be shown.  If you have a text message, use <code>showMessage</code>.
 		 */
 		public function showComponent(component:UIComponent, duration:int = 4500, priority:int = 0):void {
+			component.includeInLayout = false;
+			component.visible = false;
 			eventQueue.addEvent(new QueuedEvent(doShowComponent, [ component, duration ], priority));
 		}
 
 		private function doShowComponent(component:UIComponent, duration:int):void {
-			if (!component.parent)
-				app.addChild(component);
+			if (!component.parent) app.addChild(component);
 
 			if (!component.initialized) {
 				app.callLater(doShowComponent, [ component, duration ]);
 				return;
 			}
+			startTime = getTimer();
+			isReversed = false;
 			refreshComponent(component);
-
-			var showEffect:IEffect = IEffect(getStyle("showEffect"));
-			if (showEffect) {
-				showEffect.addEventListener(EffectEvent.EFFECT_END, showEffectEndHandler);
-				showEffect.play([ component ]);
-				componentHideTimeout = setTimeout(showComponentComplete, showEffect.duration + duration, component);
-			} else {
-				component.addEventListener(Event.ENTER_FRAME, componentEnterFrameHandler);
-				componentHideTimeout = setTimeout(showComponentComplete, duration, component);
-			}
-		}
-
-		private function showEffectEndHandler(event:EffectEvent):void {
-			var showEffect:IEffect = IEffect(event.currentTarget);
-			showEffect.removeEventListener(EffectEvent.EFFECT_END, showEffectEndHandler);
-			var component:UIComponent = UIComponent(event.effectInstance.target);
-			component.addEventListener(Event.ENTER_FRAME, componentEnterFrameHandler);
+			
+			component.addEventListener(Event.ENTER_FRAME, componentEnterFrameHandler, false, 0, true);
+			componentHideTimeout = setTimeout(hideComponent, tweenDuration + duration, component);
 		}
 
 		private function componentEnterFrameHandler(event:Event):void {
 			refreshComponent(UIComponent(event.currentTarget));
 		}
 
-		private function refreshComponent(component:UIComponent):void {
-			if (location == TOP) {
-				var topY:Number = paddingTop + app.verticalScrollPosition;
-				defaultShowEffect.yTo = topY;
-				defaultShowEffect.yFrom = topY - component.measuredHeight - paddingTop;
-				component.y = topY;
-			} else {
-				var bottomY:Number = app.height + app.verticalScrollPosition - component.measuredHeight - paddingBottom;
-				defaultShowEffect.yTo = bottomY;
-				defaultShowEffect.yFrom = bottomY + component.measuredHeight + paddingBottom;
-				component.y = bottomY;
-			}
-			defaultHideEffect.yTo = defaultShowEffect.yFrom;
-			defaultHideEffect.yFrom = defaultShowEffect.yTo;
+		protected function refreshComponent(component:UIComponent):void {
+			if (!component.visible && component.height) component.visible = true;
+			var p:Number = (getTimer() - startTime) / tweenDuration;
+			if (isReversed) p = 1 - p;
+			p = Math.max(0, Math.min(1, p));
+			p = Sine.easeIn(p, 0, 1, 1);
+			
+			var startY:Number = -component.height;
+			var endY:Number = getStyle("paddingTop") + app.verticalScrollPosition;
+			component.x = getStyle("paddingLeft");
+			component.y = (endY - startY) * p + startY;
+			component.setActualSize(app.width - getStyle("paddingLeft") - getStyle("paddingRight"), component.getExplicitOrMeasuredHeight());
 		}
 
-		private function closeMessageHandler(event:MouseEvent):void {
-			showComponentComplete(UIComponent(event.currentTarget));
+		private function componentClickHandler(event:MouseEvent):void {
+			hideComponent(UIComponent(event.currentTarget));
 		}
 
-		private function showComponentComplete(component:UIComponent):void {
+		private function hideComponent(component:UIComponent):void {
 			clearTimeout(componentHideTimeout);
-
-			component.removeEventListener(Event.ENTER_FRAME, componentEnterFrameHandler);
-			var hideEffect:IEffect = IEffect(getStyle("hideEffect"));
-			if (hideEffect) {
-				hideEffect.addEventListener(EffectEvent.EFFECT_END, hideCompleteHandler);
-				hideEffect.play([ component ]);
-			} else {
-				component.parent.removeChild(component);
-				eventQueue.completeEvent();
-			}
+			startTime = getTimer();
+			isReversed = true;
+			setTimeout(hideComponentComplete, tweenDuration, component);
 		}
-
-		private function hideCompleteHandler(event:EffectEvent):void {
-			var hideEffect:IEffect = IEffect(event.currentTarget);
-			hideEffect.removeEventListener(EffectEvent.EFFECT_END, hideCompleteHandler);
-			var component:UIComponent = UIComponent(event.effectInstance.target);
-			if (component.parent)
-				component.parent.removeChild(component);
+		
+		private function hideComponentComplete(component:UIComponent):void {
+			component.removeEventListener(Event.ENTER_FRAME, componentEnterFrameHandler);
+			component.parent.removeChild(component);
 			eventQueue.completeEvent();
 		}
 

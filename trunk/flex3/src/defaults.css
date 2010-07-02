@@ -1,8 +1,27 @@
 DebugPanel {
+	background-color: black;
+	background-alpha: 0.5;
+}
+
+MessageNotifier {
 	padding-left: 10;
 	padding-top: 10;
 	padding-right: 10;
-	padding-bottom: 10;
-	background-color: black;
-	background-alpha: 0.5;
+	message-style-name: messageStyle;
+	error-message-style-name: errorMessageStyle;
+}
+.messageStyle, .errorMessageStyle {
+	padding-left: 3;
+	padding-top: 3;
+	padding-right: 3;
+	padding-bottom: 3;
+	border-style: solid;
+	border-thickness: 2;
+	corner-radius: 8;
+	background-color: #FFFFFF;
+	font-weight: bold;
+}
+
+.errorMessageStyle {
+	color: #FF0000;
 }
