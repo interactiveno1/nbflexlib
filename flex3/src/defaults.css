@@ -10,6 +10,7 @@ MessageNotifier {
 	message-style-name: messageStyle;
 	error-message-style-name: errorMessageStyle;
 }
+
 .messageStyle, .errorMessageStyle {
 	padding-left: 3;
 	padding-top: 3;
