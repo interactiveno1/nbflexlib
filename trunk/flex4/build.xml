@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="NBFlexLib Builder" basedir=".">
+	<property name="SDK_VERSION" value="3.5.0"/>
+	<!-- Set FLEX_INSTALL to be your flex install directory in window > preferences > ant > runtime > properties -->
+	<property name="FLEX_HOME" value="${FLEX_INSTALL}/sdks/${SDK_VERSION}"/>
+	<taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
+	
+	<target name="printHome">
+		<echo message="${FLEX_HOME}"/>
+	</target>
+	
+	<target name="asdoc">
+		<exec dir="." executable="${FLEX_HOME}/bin/asdoc.exe" failonerror="true">
+			<arg line="-window-title 'NBFlexLib API Documentation'
+				-define CONFIG::demoMode false
+				-output asdocs
+				-load-config+=config-release-asdoc.xml
+				"/>
+		</exec>
+	</target>
+</project>
