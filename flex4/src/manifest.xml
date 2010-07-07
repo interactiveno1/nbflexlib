@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<componentPackage>
+	<component id="KineticScrollManager" class="com.nbilyk.utils.KineticScrollManager"/>
+	<component id="DebugPanel" class="com.nbilyk.logging.DebugPanel"/>
+	<component id="MessageNotifier" class="com.nbilyk.controls.MessageNotifier"/>
+	<component id="CallbackFactory" class="com.nbilyk.factory.CallbackFactory"/>
+	<component id="RichHtmlText" class="com.nbilyk.controls.RichHtmlText"/>
+</componentPackage>
+
