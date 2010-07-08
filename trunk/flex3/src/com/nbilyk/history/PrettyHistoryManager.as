@@ -432,14 +432,12 @@ package com.nbilyk.history {
 				if (defaultArgs != null) {
 					delete clientsPendingLoad[client];
 					defaultArgs.length = clientParamCount;
-					
-					// Check if the parameters to the client have changed.
+					// Check if the parameters to the client have changed and apply default arguments.
 					var hasChanged:Boolean = false;
 					for (var i:uint = 0; i < clientParamCount; i++) {
 						if (!newArgs[i]) newArgs[i] = defaultArgs[i];
 						if (newArgs[i] != previousArgs[i]) {
 							hasChanged = true;
-							break;
 						}
 					}
 					if (hasChanged) client.loadState(newArgs);
