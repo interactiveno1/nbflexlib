@@ -1,7 +1,6 @@
 /**
  * Copyright (c) 2009 Nicholas Bilyk
  */
-
 package com.nbilyk.display {
 	import com.nbilyk.utils.EventQueue;
 	import com.nbilyk.utils.QueuedEvent;
@@ -27,8 +26,6 @@ package com.nbilyk.display {
 		private var eventQueue:EventQueue = new EventQueue();
 
 		private var componentHideTimeout:int;
-		[ArrayElementType("flash.filters.BitmapFilter")]
-		public var messageFilters:Array = [];
 		
 		/**
 		 * The duration of the show transition in milliseconds.
@@ -78,7 +75,6 @@ package com.nbilyk.display {
 				hBox.toolTip = "Click to close";
 				hBox.addEventListener(MouseEvent.CLICK, componentClickHandler, false, 0, true);
 			}
-			hBox.filters = messageFilters;
 
 			if (duration == -1) duration = Math.min(15000, Math.max(message.length * 30 + 2000, 1000));
 			showComponent(hBox, duration, priority);
@@ -88,18 +84,21 @@ package com.nbilyk.display {
 		 * Adds a component to the queue to be shown.  If you have a text message, use <code>showMessage</code>.
 		 */
 		public function showComponent(component:UIComponent, duration:int = 4500, priority:int = 0):void {
-			component.includeInLayout = false;
 			component.visible = false;
+			component.includeInLayout = false;
+			if (!component.parent) app.addChild(component);
+			component.setActualSize(app.width - getStyle("paddingLeft") - getStyle("paddingRight"), component.getExplicitOrMeasuredHeight());
+			component.validateSize(true);
+			component.validateNow();
 			eventQueue.addEvent(new QueuedEvent(doShowComponent, [ component, duration ], priority));
 		}
 
 		private function doShowComponent(component:UIComponent, duration:int):void {
-			if (!component.parent) app.addChild(component);
-
 			if (!component.initialized) {
 				app.callLater(doShowComponent, [ component, duration ]);
 				return;
 			}
+			if (!component.visible) component.visible = true;
 			startTime = getTimer();
 			isReversed = false;
 			refreshComponent(component);
@@ -113,7 +112,6 @@ package com.nbilyk.display {
 		}
 
 		protected function refreshComponent(component:UIComponent):void {
-			if (!component.visible && component.height) component.visible = true;
 			var p:Number = (getTimer() - startTime) / tweenDuration;
 			if (isReversed) p = 1 - p;
 			p = Math.max(0, Math.min(1, p));
