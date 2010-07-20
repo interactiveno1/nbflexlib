@@ -7,6 +7,7 @@ package com.nbilyk.utils {
 	import flash.events.MouseEvent;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.text.TextField;
 	import flash.utils.getTimer;
 	
 	import spark.core.IViewport;
@@ -33,7 +34,16 @@ package com.nbilyk.utils {
 		private var previousTimes:Array;
 		private var velocity:Point;
 		private var _enabled:Boolean = true;
-
+		
+		/**
+		 * Dampening affects how quickly the toss velocity will slow to a stop.
+		 * Make this number 0 < dampening < 1.  Where 1 will go forever, and 0 will prevent any momentum.
+		 */
+		public var dampening:Number = .8;
+		
+		public var horizontalScrollEnabled:Boolean = true;
+		public var verticalScrollEnabled:Boolean = true;
+		
 		public function KineticScrollManager(targetVal:IViewport = null) {
 			target = targetVal;
 		}
@@ -56,18 +66,26 @@ package com.nbilyk.utils {
 		}
 
 		private function mouseDownHandler(event:MouseEvent):void {
-			if (!enabled)
-				return;
+			if (!enabled) return;
+			if (event.target is TextField && TextField(event.target).selectable) return;
+			if (hasMouseEventListeners(targetDisplayObject)) return;
+			
 			stop();
 			previousPoints = [new Point(targetDisplayObject.stage.mouseX, targetDisplayObject.stage.mouseY)];
 			previousTimes = [getTimer()];
 			targetDisplayObject.stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler, false, 0, true);
 			targetDisplayObject.stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler, false, 0, true);
 		}
+		
+		private function hasMouseEventListeners(displayTarget:DisplayObject):Boolean {
+			if (displayTarget == target) return false;
+			if (displayTarget.hasEventListener(MouseEvent.MOUSE_DOWN) || displayTarget.hasEventListener(MouseEvent.MOUSE_UP)) return true;
+			if (displayTarget.parent) return hasMouseEventListeners(displayTarget.parent);
+			return false;
+		}
 
 		private function mouseMoveHandler(event:MouseEvent):void {
-			if (!enabled)
-				return;
+			if (!enabled) return;
 			if (!event.buttonDown) {
 				mouseUpHandler();
 				return;
@@ -77,8 +95,7 @@ package com.nbilyk.utils {
 			var previousPoint:Point = Point(previousPoints[previousPoints.length - 1]);
 			var diff:Point = currPoint.subtract(previousPoint);
 			diff = transformPointToLocal(diff);
-			target.horizontalScrollPosition -= diff.x;
-			target.verticalScrollPosition -= diff.y;
+			moveScrollPosition(diff);
 
 			// Keep track of a set amount of positions and times so that on release, we can always look back a consistant amount.
 			previousPoints.push(currPoint);
@@ -105,16 +122,15 @@ package com.nbilyk.utils {
 		}
 
 		private function enterFrameHandler(event:Event):void {
-			velocity = new Point(velocity.x * .8, velocity.y * .8);
+			velocity = new Point(velocity.x * dampening, velocity.y * dampening);
 			var cM:Matrix = targetDisplayObject.transform.concatenatedMatrix;
 			var localVelocity:Point = transformPointToLocal(velocity);
 			if (Math.abs(localVelocity.x) < .1) localVelocity.x = 0;
 			if (Math.abs(localVelocity.y) < .1) localVelocity.y = 0;
 			if (!localVelocity.x && !localVelocity.y) stop();
-			target.horizontalScrollPosition -= localVelocity.x;
-			target.verticalScrollPosition -= localVelocity.y;
+			moveScrollPosition(localVelocity);
 		}
-
+		
 		private function mouseClickHandler(event:MouseEvent):void {
 			if (velocity.length > 5) {
 				event.stopImmediatePropagation();
@@ -155,6 +171,15 @@ package com.nbilyk.utils {
 			_enabled = value;
 			if (!value) {
 				stop();
+			}
+		}
+		
+		protected function moveScrollPosition(diff:Point):void {
+			if (horizontalScrollEnabled) {
+				target.horizontalScrollPosition -= diff.x;
+			}
+			if (verticalScrollEnabled) {
+				target.verticalScrollPosition -= diff.y;
 			}
 		}
 		
