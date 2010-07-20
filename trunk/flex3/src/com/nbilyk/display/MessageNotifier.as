@@ -7,7 +7,6 @@ package com.nbilyk.display {
 	
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	import flash.utils.clearTimeout;
 	import flash.utils.getTimer;
 	import flash.utils.setTimeout;
 	
@@ -16,6 +15,7 @@ package com.nbilyk.display {
 	import mx.core.ApplicationGlobals;
 	import mx.core.UIComponent;
 	import mx.effects.easing.Sine;
+	import mx.events.FlexEvent;
 
 	[Style(name="paddingLeft",type="Number")]
 	[Style(name="paddingTop",type="Number")]
@@ -25,8 +25,6 @@ package com.nbilyk.display {
 	public class MessageNotifier extends CSSComponent {
 		private var eventQueue:EventQueue = new EventQueue();
 
-		private var componentHideTimeout:int;
-		
 		/**
 		 * The duration of the show transition in milliseconds.
 		 */
@@ -45,6 +43,9 @@ package com.nbilyk.display {
 		
 		private var startTime:Number;
 		private var isReversed:Boolean;
+		
+		private var currentComponent:UIComponent;
+		private var currentDuration:Number;
 
 		public function MessageNotifier() {
 			super();
@@ -86,58 +87,71 @@ package com.nbilyk.display {
 		public function showComponent(component:UIComponent, duration:int = 4500, priority:int = 0):void {
 			component.visible = false;
 			component.includeInLayout = false;
-			if (!component.parent) app.addChild(component);
-			component.setActualSize(app.width - getStyle("paddingLeft") - getStyle("paddingRight"), component.getExplicitOrMeasuredHeight());
-			component.validateSize(true);
-			component.validateNow();
+			
 			eventQueue.addEvent(new QueuedEvent(doShowComponent, [ component, duration ], priority));
 		}
-
+		
 		private function doShowComponent(component:UIComponent, duration:int):void {
-			if (!component.initialized) {
-				app.callLater(doShowComponent, [ component, duration ]);
-				return;
-			}
-			if (!component.visible) component.visible = true;
+			currentComponent = component;
+			currentDuration = duration;
+			
+			if (!currentComponent.parent) app.addChild(currentComponent);
+			if (currentComponent.initialized) componentCreationCompleteHandler();
+			else currentComponent.addEventListener(FlexEvent.CREATION_COMPLETE, componentCreationCompleteHandler);
+		}
+		
+		private function componentCreationCompleteHandler(event:FlexEvent = null):void {
+			currentComponent.removeEventListener(FlexEvent.CREATION_COMPLETE, componentCreationCompleteHandler);
+			startTime = getTimer();
+			currentComponent.setActualSize(app.width - getStyle("paddingLeft") - getStyle("paddingRight"), currentComponent.getExplicitOrMeasuredHeight());
+			currentComponent.validateSize(true);
+			currentComponent.validateNow();
+			currentComponent.addEventListener(FlexEvent.UPDATE_COMPLETE, componentUpdateCompleteHandler);
+		}
+		
+		private function componentUpdateCompleteHandler(event:FlexEvent = null):void {
+			currentComponent.removeEventListener(FlexEvent.UPDATE_COMPLETE, componentUpdateCompleteHandler);
 			startTime = getTimer();
 			isReversed = false;
-			refreshComponent(component);
-			
-			component.addEventListener(Event.ENTER_FRAME, componentEnterFrameHandler, false, 0, true);
-			componentHideTimeout = setTimeout(hideComponent, tweenDuration + duration, component);
+			refreshCurrentComponent();
+			currentComponent.visible = true;
+			currentComponent.addEventListener(Event.ENTER_FRAME, componentEnterFrameHandler, false, 0, true);
 		}
 
 		private function componentEnterFrameHandler(event:Event):void {
-			refreshComponent(UIComponent(event.currentTarget));
+			refreshCurrentComponent();
 		}
 
-		protected function refreshComponent(component:UIComponent):void {
-			var p:Number = (getTimer() - startTime) / tweenDuration;
+		protected function refreshCurrentComponent():void {
+			var elapsedTime:Number = getTimer() - startTime;
+			var p:Number = elapsedTime / tweenDuration;
 			if (isReversed) p = 1 - p;
 			p = Math.max(0, Math.min(1, p));
 			p = Sine.easeIn(p, 0, 1, 1);
 			
-			var startY:Number = -component.height;
+			var startY:Number = -currentComponent.height;
 			var endY:Number = getStyle("paddingTop") + app.verticalScrollPosition;
-			component.x = getStyle("paddingLeft");
-			component.y = (endY - startY) * p + startY;
-			component.setActualSize(app.width - getStyle("paddingLeft") - getStyle("paddingRight"), component.getExplicitOrMeasuredHeight());
+			currentComponent.move(getStyle("paddingLeft"), (endY - startY) * p + startY);
+			currentComponent.setActualSize(app.width - getStyle("paddingLeft") - getStyle("paddingRight"), currentComponent.getExplicitOrMeasuredHeight());
+			
+			if (isReversed && p == 0) hideComponentComplete();
+			if (!isReversed && elapsedTime > tweenDuration + currentDuration) hideCurrentComponent(); // We have shown the component long enough.
 		}
 
 		private function componentClickHandler(event:MouseEvent):void {
-			hideComponent(UIComponent(event.currentTarget));
+			hideCurrentComponent();
 		}
 
-		private function hideComponent(component:UIComponent):void {
-			clearTimeout(componentHideTimeout);
+		public function hideCurrentComponent():void {
+			if (isReversed) return;
 			startTime = getTimer();
 			isReversed = true;
-			setTimeout(hideComponentComplete, tweenDuration, component);
 		}
 		
-		private function hideComponentComplete(component:UIComponent):void {
-			component.removeEventListener(Event.ENTER_FRAME, componentEnterFrameHandler);
-			component.parent.removeChild(component);
+		private function hideComponentComplete():void {
+			currentComponent.removeEventListener(Event.ENTER_FRAME, componentEnterFrameHandler);
+			if (currentComponent.parent) currentComponent.parent.removeChild(currentComponent);
+			currentComponent = null;
 			eventQueue.completeEvent();
 		}
 
