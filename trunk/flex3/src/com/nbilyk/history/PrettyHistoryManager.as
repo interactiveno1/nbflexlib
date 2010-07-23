@@ -93,13 +93,6 @@ package com.nbilyk.history {
 		}
 		
 		/**
-		 * @see mx.core.Application#callLater
-		 */
-		private function callLater(method:Function, args:Array = null):void {
-			app.callLater(method, args);
-		}
-
-		/**
 		 * Causes the client to automatically be registered and unregistered as it's added and removed from the stage. 
 		 * @param client The DisplayObject to watch.
 		 */
@@ -419,7 +412,6 @@ package com.nbilyk.history {
 			if (!app.historyManagementEnabled) return;
 			isLoadingState = true;
 			var fragmentSplit:Array = action.split(separator);
-			var fragmentSplitL:uint = fragmentSplit.length;
 			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
 				if (!clientsPendingLoad[client]) continue;
 				var clientDepth:uint = client.getClientDepth();

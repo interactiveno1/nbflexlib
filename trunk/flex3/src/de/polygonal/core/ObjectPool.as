@@ -275,6 +275,7 @@ package de.polygonal.core {
 internal class ObjNode {
 	public var next:ObjNode;
 	public var data:*;
+	public function ObjNode() {}
 }
 
 import mx.core.IFactory;

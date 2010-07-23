@@ -1,8 +1,6 @@
 package com.nbilyk.utils {
 	import flash.display.DisplayObject;
 	
-	import mx.utils.ObjectUtil;
-
 	public class ListRecycler {
 		
 		[ArrayElementType("*")]
