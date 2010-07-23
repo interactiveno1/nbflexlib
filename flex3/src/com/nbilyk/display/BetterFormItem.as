@@ -11,8 +11,6 @@
 package com.nbilyk.display {
 	import mx.containers.FormItem;
 	import mx.controls.Text;
-	import mx.styles.CSSStyleDeclaration;
-	import mx.styles.StyleManager;
 
 	[Style(name="labelStyleName", type="String")]
 	public class BetterFormItem extends FormItem {

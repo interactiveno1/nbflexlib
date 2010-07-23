@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties version="1">
   <includeClasses>
-    <classEntry path="com.nbilyk.naddress.NAddressPrettyHistory"/>
-    <classEntry path="com.nbilyk.utils.LoaderQueueManager"/>
     <classEntry path="NBFlexLibClasses"/>
-    <classEntry path="com.nbilyk.naddress.NAddress"/>
-    <classEntry path="com.nbilyk.naddress.events.NAddressEvent"/>
   </includeClasses>
   <includeResources>
     <resourceEntry destPath="defaults.css" sourcePath="defaults.css"/>

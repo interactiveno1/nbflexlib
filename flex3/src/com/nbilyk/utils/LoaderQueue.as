@@ -8,7 +8,6 @@ package com.nbilyk.utils {
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
-	import flash.utils.Dictionary;
 	
 	public class LoaderQueue {
 		private static const BINARY_FORMATS:String = "swf jpg gif png";

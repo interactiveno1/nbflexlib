@@ -115,7 +115,6 @@ package com.nbilyk.utils {
 
 		private function enterFrameHandler(event:Event):void {
 			velocity = new Point(velocity.x * dampening, velocity.y * dampening);
-			var cM:Matrix = target.transform.concatenatedMatrix;
 			var localVelocity:Point = transformPointToLocal(velocity);
 			if (Math.abs(localVelocity.x) < .1) localVelocity.x = 0;
 			if (Math.abs(localVelocity.y) < .1) localVelocity.y = 0;

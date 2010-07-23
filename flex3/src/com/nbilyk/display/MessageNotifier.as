@@ -8,7 +8,6 @@ package com.nbilyk.display {
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.utils.getTimer;
-	import flash.utils.setTimeout;
 	
 	import mx.containers.HBox;
 	import mx.controls.Text;
