@@ -1,11 +1,13 @@
-@namespace n "http://www.nbilyk.com/2009";
+@namespace nbilyk "http://www.nbilyk.com/2009";
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
 
-n|DebugPanel {
+nbilyk|DebugPanel {
 	background-color: black;
 	background-alpha: 0.5;
 }
 
-n|MessageNotifier {
+nbilyk|MessageNotifier {
 	padding-left: 10;
 	padding-top: 10;
 	padding-right: 10;
@@ -14,12 +16,8 @@ n|MessageNotifier {
 }
 
 .messageStyle, .errorMessageStyle {
-	padding-left: 3;
-	padding-top: 3;
-	padding-right: 3;
-	padding-bottom: 3;
 	border-style: solid;
-	border-thickness: 2;
+	border-weight: 2;
 	corner-radius: 8;
 	background-color: #FFFFFF;
 	font-weight: bold;
@@ -27,4 +25,65 @@ n|MessageNotifier {
 
 .errorMessageStyle {
 	color: #FF0000;
+}
+
+/*
+Video player styles
+*/
+
+mx|ProgressBar.vpBufferingIndicator {
+	color: #ffffff;
+}
+
+.vpPlayButton, .vpPauseButton, .vpStopButton, .vpVolumeButton, .vpVolumeButtonMuted, .vpFullScreenButton {
+	cornerRadius: 10;
+	textIndent: 0;
+	paddingLeft: 0;
+	paddingRight: 0;
+	highlightAlphas: 0, 0;
+	fillAlphas: 1, 0.88, 1, 1;
+	fillColors: #333333, #333333, #666666, #666666;
+	themeColor: #707070;
+	horizontalGap: 0;
+}
+.vpPlayButton {
+	icon: Embed(source="videoPlayerSkin.swf", symbol="playIcon");
+}
+.vpPauseButton {
+	icon: Embed(source="videoPlayerSkin.swf", symbol="pauseIcon");
+}
+.vpStopButton {
+	icon: Embed(source="videoPlayerSkin.swf", symbol="stopIcon");
+}
+.vpVolumeButton {
+	icon: Embed(source="videoPlayerSkin.swf", symbol="volumeIcon");
+}
+.vpVolumeButtonMuted {
+	icon: Embed(source="videoPlayerSkin.swf", symbol="volumeIconMuted");
+}
+.vpFullScreenButton {
+	icon: Embed(source="videoPlayerSkin.swf", symbol="fullScreenIcon");
+}
+.vpPlayheadProgressBar {
+	borderColor: #000000;
+	barColor: #888888;
+	trackColors: #222222, #111111;
+}
+.vpLoadingProgressBar {
+	borderColor: #000000;
+	barColor: #444444;
+	trackColors: #222222, #111111;
+}
+.vpVolumeSlider {
+	thumbSkin: Embed(source="videoPlayerSkin.swf", symbol="volumeThumbSkin");
+}
+.vpTimeSlider {
+	thumbSkin: Embed(source="videoPlayerSkin.swf", symbol="timeThumbSkin");
+	trackSkin: Embed(source="videoPlayerSkin.swf", symbol="timeTrackSkin");
+	showTrackHighlight: false;
+}
+mx|Button.vpBigPlayButton {
+	skin: Embed(source="videoPlayerSkin.swf", symbol="bigPlayButton");
+	overSkin: Embed(source="videoPlayerSkin.swf", symbol="bigPlayButton_over");
+	downSkin: Embed(source="videoPlayerSkin.swf", symbol="bigPlayButton_over");
 }

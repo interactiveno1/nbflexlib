@@ -2,10 +2,12 @@
 <flexLibProperties includeAllClasses="false" version="1">
   <includeClasses>
     <classEntry path="NBFlexLibClasses"/>
-    <classEntry path="com.nbilyk.controls.RichHtmlText"/>
+    <classEntry path="com.nbilyk.flexvideoplayer.VideoControlBar"/>
   </includeClasses>
   <includeResources>
+    <resourceEntry destPath="manifest.xml" sourcePath="manifest.xml"/>
     <resourceEntry destPath="defaults.css" sourcePath="defaults.css"/>
+    <resourceEntry destPath="videoPlayerSkin.swf" sourcePath="videoPlayerSkin.swf"/>
   </includeResources>
   <namespaceManifests>
     <namespaceManifestEntry manifest="manifest.xml" namespace="http://www.nbilyk.com/2009"/>
