@@ -1,20 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:flexvideoplayer="com.nbilyk.flexvideoplayer.*" addedToStage="addedToStageHandler(event);" removedFromStage="removedFromStageHandler(event);" creationComplete="creationCompleteHandler(event);">
-	<mx:Script>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:flexvideoplayer="com.nbilyk.flexvideoplayer.*"
+		 addedToStage="addedToStageHandler(event);"
+		 removedFromStage="removedFromStageHandler(event);"
+		 creationComplete="creationCompleteHandler(event);">
+	<fx:Script>
 		<![CDATA[
 			import com.nbilyk.utils.FunctionUtils;
-			import mx.events.VideoEvent;
-			import mx.events.SliderEvent;
+			
 			import flash.utils.getTimer;
+			
 			import mx.events.FlexEvent;
-			import mx.controls.VideoDisplay;
+			
+			import org.osmf.events.TimeEvent;
+			
+			import spark.components.VideoDisplay;
+			import spark.events.TrackBaseEvent;
 			
 			public var hideControlsDelay:uint = 72; // In frames
 			public var hideVolumeSliderDelay:uint = 72; // In frames
-
-			[Bindable] public var videoDisplay:VideoDisplay;
-
-			[Bindable] public var horizontalGap:Number = 7;
+			
+			[Bindable]
+			public var videoDisplay:VideoDisplay;
+			
+			[Bindable]
+			public var horizontalGap:Number = 7;
 			public var useTransitions:Boolean = true;
 			public var autoHide:Boolean = true;
 			
@@ -23,26 +35,31 @@
 			private var isChangingPlayheadTime:Boolean;
 			private var showControlsTime:int;
 			private var lastMousePoint:Point = new Point();
-
+			
 			private function addedToStageHandler(event:Event):void {
 				addEventListener(Event.ENTER_FRAME, enterFrameHandler);
 			}
+			
 			private function removedFromStageHandler(event:Event):void {
 				removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
 			}
-
+			
 			private function creationCompleteHandler(event:FlexEvent):void {
-				if (!videoDisplay) throw new Error("Property videoDisplay is required.");
-				videoDisplay.addEventListener(VideoEvent.PLAYHEAD_UPDATE, playheadUpdateHandler, false, 0, true);
+				if (!videoDisplay)
+					throw new Error("Property videoDisplay is required.");
+				videoDisplay.addEventListener(TimeEvent.CURRENT_TIME_CHANGE, playheadUpdateHandler, false, 0, true);
 			}
-			private function playheadUpdateHandler(event:VideoEvent = null):void {
+			
+			private function playheadUpdateHandler(event:TimeEvent = null):void {
 				// Update the playhead.
-				playingProgressBar.setProgress(videoDisplay.playheadTime, videoDisplay.totalTime);
-				if (!isSeeking && !isChangingPlayheadTime) timeSlider.value = videoDisplay.playheadTime / videoDisplay.totalTime;
+				playingProgressBar.setProgress(videoDisplay.currentTime, videoDisplay.duration);
+				if (!isSeeking && !isChangingPlayheadTime)
+					timeSlider.value = videoDisplay.currentTime / videoDisplay.duration;
 			}
-
+			
 			private function enterFrameHandler(event:Event):void {
-				if (!stage || !initialized || !videoDisplay) return;
+				if (!stage || !initialized || !videoDisplay)
+					return;
 				var currentTime:int = getTimer();
 				
 				// Determine if we should be showing the controls.
@@ -53,7 +70,8 @@
 						// Mouse hasn't moved.
 						if (!hitTestPoint(stage.mouseX, stage.mouseY, false)) {
 							// Mouse is not over the controls. Count down to hide.
-							if (showControlsTime >= 0) showControlsTime--;
+							if (showControlsTime >= 0)
+								showControlsTime--;
 							showControls = false;
 						}
 					}
@@ -78,24 +96,26 @@
 				// Determine if we should be showing the volume slider.
 				
 			}
-
+			
 			public function togglePlaying():void {
-				if (videoDisplay.playing) pause();
-				else play();
+				if (videoDisplay.playing)
+					pause();
+				else
+					play();
 			}
-
+			
 			public function play():void {
 				videoDisplay.play();
 			}
-
+			
 			public function pause():void {
 				videoDisplay.pause();
 			}
-
+			
 			public function stop():void {
 				videoDisplay.stop();
 			}
-
+			
 			public function fullScreen():void {
 				try {
 					if (stage.displayState == StageDisplayState.FULL_SCREEN) {
@@ -107,34 +127,40 @@
 					trace(err);
 				}
 			}
-
+			
 			private function volumeChangeHandler():void {
 				videoDisplay.volume = volumeSlider.value;
 			}
-
-			private function timeSliderThumbPressHandler(event:SliderEvent):void {
+			
+			private function timeSliderThumbPressHandler(event:TrackBaseEvent):void {
 				isSeeking = true;
 				wasPlaying = videoDisplay.playing;
 				pause();
 			}
-
-			private function timeSliderThumbReleaseHandler(event:SliderEvent):void {
+			
+			private function timeSliderThumbReleaseHandler(event:TrackBaseEvent):void {
 				isSeeking = false;
-				if (wasPlaying) play();
+				if (wasPlaying)
+					play();
 			}
-
-			private function timeSliderChangeHandler(event:SliderEvent):void {
+			
+			private function timeSliderChangeHandler(event:Event):void {
 				isChangingPlayheadTime = true;
 				// Prevents a jerk in the slider.
-				FunctionUtils.delayedCall(updatePlayheadTime, 250, [event.value]);
+				FunctionUtils.delayedCall(updatePlayheadTime, 250, [timeSlider.value]);
 			}
+			
 			private function updatePlayheadTime(time:Number):void {
-				var t:Number = time * videoDisplay.totalTime;
-				var timeDiff:Number = t - videoDisplay.playheadTime;
-				if (Math.abs(timeDiff) < 0.5) return;
-				videoDisplay.playheadTime = t;
+				if (!videoDisplay.duration)
+					return;
+				var t:Number = time * videoDisplay.duration;
+				var timeDiff:Number = t - videoDisplay.currentTime;
+				if (Math.abs(timeDiff) < 0.5)
+					return;
+				videoDisplay.seek(t);
 			}
-
+			
+			
 			private function volumeClickHandler(event:MouseEvent):void {
 				if (videoDisplay.volume) {
 					videoDisplay.volume = 0;
@@ -143,7 +169,7 @@
 				}
 				volumeSlider.value = videoDisplay.volume;
 			}
-
+			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void {
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				loadingProgressBar.x = leftContainer.x + leftContainer.width + horizontalGap;
@@ -155,15 +181,16 @@
 
 				volumeSlider.y = rightContainer.y - volumeSlider.height;
 				volumeSlider.x = volumeButton.width / 2 - volumeSlider.width / 2 - 2;
-			}
+			} 
 		]]>
-	</mx:Script>
-
-	<mx:HBox id="leftContainer" left="{horizontalGap}" verticalAlign="middle">
-		<mx:Button id="playButton" includeInLayout="false" visible="{!videoDisplay.playing}" click="play();" styleName="vpPlayButton"/>
-		<mx:Button id="pauseButton" label="" visible="{videoDisplay.playing}" click="pause();" styleName="vpPauseButton"/>
+	</fx:Script>
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<s:HGroup id="leftContainer" left="{horizontalGap}" verticalAlign="middle">
+		<mx:Button click="togglePlaying();" styleName="{videoDisplay.playing ? 'vpPauseButton' : 'vpPlayButton'}"/>
 		<mx:Button id="stopButton" label="" click="stop();" styleName="vpStopButton"/>
-	</mx:HBox>
+	</s:HGroup>
 	<mx:ProgressBar id="loadingProgressBar"
 					label=""
 					labelPlacement="right"
@@ -179,27 +206,27 @@
 					horizontalGap="0"
 					styleName="vpPlayheadProgressBar"
 					alpha=".5"/>
-	<mx:HSlider id="timeSlider"
-				minimum="0"
-				maximum="1"
-				showDataTip="false"
-				styleName="vpTimeSlider"
-				thumbPress="timeSliderThumbPressHandler(event);"
-				thumbRelease="timeSliderThumbReleaseHandler(event);"
-				change="timeSliderChangeHandler(event);"/>
-	<mx:HBox id="rightContainer" right="{horizontalGap}" verticalAlign="middle">
-		<mx:VSlider id="volumeSlider"
-					includeInLayout="false"
-					height="100"
-					styleName="vpVolumeSlider"
-					change="volumeChangeHandler();"
-					minimum="0"
-					maximum="1"
-					showDataTip="false"
-					value=".75"
-					liveDragging="true"
-					visible="false"/>
+	<s:HSlider id="timeSlider"
+			   minimum="0"
+			   maximum="1"
+			   showDataTip="false"
+			   styleName="vpTimeSlider"
+			   thumbPress="timeSliderThumbPressHandler(event);"
+			   thumbRelease="timeSliderThumbReleaseHandler(event);"
+			   change="timeSliderChangeHandler(event);"/>
+	<s:HGroup id="rightContainer" right="{horizontalGap}" verticalAlign="middle">
+		<s:VSlider id="volumeSlider"
+				   includeInLayout="false"
+				   height="100"
+				   styleName="vpVolumeSlider"
+				   change="volumeChangeHandler();"
+				   minimum="0"
+				   maximum="1"
+				   showDataTip="false"
+				   value=".75"
+				   liveDragging="true"
+				   visible="false"/>
 		<mx:Button id="volumeButton" label="" click="volumeClickHandler(event);" styleName="vpVolumeButton"/>
 		<mx:Button id="fullScreenButton" label="" click="fullScreen();" styleName="vpFullScreenButton"/>
-	</mx:HBox>
-</mx:Canvas>
+	</s:HGroup>
+</s:Group>

@@ -5,5 +5,6 @@
 	<component id="MessageNotifier" class="com.nbilyk.controls.MessageNotifier"/>
 	<component id="CallbackFactory" class="com.nbilyk.factory.CallbackFactory"/>
 	<component id="RichHtmlText" class="com.nbilyk.controls.RichHtmlText"/>
+	<component id="FlexVideoPlayer" class="com.nbilyk.flexvideoplayer.FlexVideoPlayer"/>
 </componentPackage>
 
