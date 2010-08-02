@@ -9,7 +9,7 @@ package com.nbilyk.utils {
 	import flash.geom.Point;
 	import flash.text.TextField;
 	import flash.utils.getTimer;
-	
+
 	import mx.core.Container;
 
 	/**
@@ -34,7 +34,7 @@ package com.nbilyk.utils {
 		private var previousTimes:Array;
 		private var velocity:Point = new Point();
 		private var _enabled:Boolean = true;
-		
+
 		public var dampening:Number = .8;
 		public var horizontalScrollEnabled:Boolean = true;
 		public var verticalScrollEnabled:Boolean = true;
@@ -42,7 +42,7 @@ package com.nbilyk.utils {
 		public function KineticScrollManager(targetVal:Container = null) {
 			target = targetVal;
 		}
-		
+
 		public function get target():Container {
 			return _target;
 		}
@@ -58,17 +58,16 @@ package com.nbilyk.utils {
 
 		private function mouseDownHandler(event:MouseEvent):void {
 			if (!enabled) return;
-			var displayTarget:DisplayObject = DisplayObject(event.target);
 			if (event.target is TextField && TextField(event.target).selectable) return;
-			if (hasMouseEventListeners(displayTarget)) return;
-			
+			if (hasMouseEventListeners(DisplayObject(event.target))) return;
+
 			stop();
-			previousPoints = [ new Point(target.mouseX, target.mouseY)];
+			previousPoints = [new Point(target.stage.mouseX, target.stage.mouseY)];
 			previousTimes = [ getTimer()];
 			target.stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler, false, 0, true);
 			target.stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler, false, 0, true);
 		}
-		
+
 		private function hasMouseEventListeners(displayTarget:DisplayObject):Boolean {
 			if (displayTarget == target) return false;
 			if (displayTarget.hasEventListener(MouseEvent.MOUSE_DOWN) || displayTarget.hasEventListener(MouseEvent.MOUSE_UP)) return true;
@@ -104,17 +103,18 @@ package com.nbilyk.utils {
 			if (!enabled) return;
 			target.addEventListener(Event.ENTER_FRAME, enterFrameHandler, false, 0, true);
 
-			var currPoint:Point = new Point(target.mouseX, target.mouseY);
+			var currPoint:Point = new Point(target.stage.mouseX, target.stage.mouseY);
 			var currTime:int = getTimer();
 			var firstPoint:Point = Point(previousPoints[0]);
 			var firstTime:int = int(previousTimes[0]);
 			var diff:Point = currPoint.subtract(firstPoint);
-			var time:Number = (currTime - firstTime) / (1000 / 24);
+			var time:Number = (currTime - firstTime) / (1000 / target.stage.frameRate);
 			velocity = new Point(diff.x / time, diff.y / time);
 		}
 
 		private function enterFrameHandler(event:Event):void {
 			velocity = new Point(velocity.x * dampening, velocity.y * dampening);
+			var cM:Matrix = target.transform.concatenatedMatrix;
 			var localVelocity:Point = transformPointToLocal(velocity);
 			if (Math.abs(localVelocity.x) < .1) localVelocity.x = 0;
 			if (Math.abs(localVelocity.y) < .1) localVelocity.y = 0;
@@ -163,7 +163,7 @@ package com.nbilyk.utils {
 				stop();
 			}
 		}
-		
+
 		protected function moveScrollPosition(diff:Point):void {
 			if (horizontalScrollEnabled) {
 				target.horizontalScrollPosition -= diff.x;
@@ -172,7 +172,7 @@ package com.nbilyk.utils {
 				target.verticalScrollPosition -= diff.y;
 			}
 		}
-		
+
 		private function transformPointToLocal(p:Point):Point {
 			var cM:Matrix = target.transform.concatenatedMatrix.clone();
 			cM.tx = 0;
