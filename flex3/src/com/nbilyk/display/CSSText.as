@@ -24,6 +24,7 @@ package com.nbilyk.display {
 		public function get styleSheetUrl():String {
 			return _styleSheetUrl;
 		}
+
 		public function set styleSheetUrl(value:String):void {
 			_styleSheetUrl = value;
 			loadStyleSheet(value);
@@ -55,6 +56,7 @@ package com.nbilyk.display {
 			urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, styleSheetSecurityErrorHandler, false, 0, true);
 			urlLoader.load(urlRequest);
 		}
+
 		private function styleSheetLoaderCompleteHandler(event:Event):void {
 			var urlLoader:URLLoader = URLLoader(event.currentTarget);
 			var newStyleSheet:StyleSheet = new StyleSheet();
@@ -62,9 +64,11 @@ package com.nbilyk.display {
 			styleSheet = newStyleSheet;
 			dispatchEvent(new Event(CSS_COMPLETE));
 		}
+
 		private function styleSheetIoErrorHandler(event:IOErrorEvent):void {
 			dispatchEvent(event);
 		}
+
 		private function styleSheetSecurityErrorHandler(event:SecurityErrorEvent):void {
 			dispatchEvent(event);
 		}
