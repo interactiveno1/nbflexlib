@@ -16,6 +16,7 @@ package com.nbilyk.utils {
 		
 		[ArrayElementType("String")]
 		public static const PRIMITIVE_TYPES:Array = ["String", "Number", "uint", "int", "Boolean", "Date", "Array"];
+		public static const IGNORE_TYPES:Array = ["*", "Function"];
 		
 		/**
 		 * Clones either an object or an array.  The same as Flex's ObjectUtil.clone method.
@@ -36,12 +37,13 @@ package com.nbilyk.utils {
 		 * @param transferNulls If true, null values from objectB will transfer to objectA
 		 * @param useCache If true, the type descriptor will be retrieved from DescribeTypeCache and not describeType
 		 */
-		public static function mergeObjects(objectA:*, objectB:*, transferNulls:Boolean = false, useCache:Boolean = true):void {
+		public static function mergeObjects(objectA:*, objectB:*, transferNulls:Boolean = false, useCache:Boolean = true, recursive:Boolean = true):void {
 			if (getQualifiedClassName(objectA) != getQualifiedClassName(objectB)) throw new ArgumentError("objectA and objectB are not the same type.");
-			internalMergeObjects(objectA, objectB, transferNulls, useCache, new Dictionary(true));
+			internalMergeObjects(objectA, objectB, transferNulls, useCache, new Dictionary(true), recursive);
 		}
 		
-		private static function internalMergeObjects(objectA:*, objectB:*, transferNulls:Boolean, useCache:Boolean, ref:Dictionary):void {
+		private static function internalMergeObjects(objectA:*, objectB:*, transferNulls:Boolean, useCache:Boolean, ref:Dictionary, recursive:Boolean):void {
+			if (getQualifiedClassName(objectA) != getQualifiedClassName(objectB)) return; // Do not try to merge objects of different types.
 			ref[objectA] = true;
 			var typeXml:XML;
 			if (useCache) {
@@ -55,11 +57,13 @@ package com.nbilyk.utils {
 				var propertyValueB:* = objectB[property.@name];
 				if (transferNulls || propertyValueB != null) {
 					var propertyType:String = property.@type;
-					if (PRIMITIVE_TYPES.indexOf(propertyType) == -1) {
-						// Not a primitive type 
+					if (IGNORE_TYPES.indexOf(propertyType) != -1) {
+						// Ignore
+					} else if (PRIMITIVE_TYPES.indexOf(propertyType) == -1 && recursive) {
+						// Not a primitive type, recurse into the sub-object.
 						if (propertyValueA != null && propertyValueB != null) {
 							if (!ref[propertyValueA]) {
-								internalMergeObjects(propertyValueA, propertyValueB, transferNulls, useCache, ref);
+								internalMergeObjects(propertyValueA, propertyValueB, transferNulls, useCache, ref, recursive);
 							}
 						} else {
 							objectA[property.@name] = propertyValueB;
