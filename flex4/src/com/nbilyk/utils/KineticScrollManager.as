@@ -69,7 +69,7 @@ package com.nbilyk.utils {
 		private function mouseDownHandler(event:MouseEvent):void {
 			if (!enabled) return;
 			if (event.target is TextField && TextField(event.target).selectable) return;
-			if (event.target is RichEditableText && (RichEditableText(event.target).editable || RichEditableText(event.target).selectable)) return;
+			if (event.target is RichEditableText && (RichEditableText(event.target).editable || RichEditableText(event.target).selectable)) return; // Contrib: Judah Frangipane
 			
 			if (hasMouseEventListeners(targetDisplayObject)) return;
 			
