@@ -10,11 +10,12 @@ package com.nbilyk.utils {
 	import flash.text.TextField;
 	import flash.utils.getTimer;
 	
+	import spark.components.RichEditableText;
 	import spark.core.IViewport;
 
 	/**
 	 * To use via mxml:
-	 * <utils:KineticScrollManager target="{targetViewPort}"/>
+	 * <nbilyk:KineticScrollManager target="{targetViewPort}"/>
 	 *
 	 * To use via actionscript:
 	 * create a non-temporary instance of KineticScrollManager, passing the UIComponent you wish to
@@ -32,7 +33,7 @@ package com.nbilyk.utils {
 		private var previousPoints:Array;
 		[ArrayElementType("int")]
 		private var previousTimes:Array;
-		private var velocity:Point;
+		private var velocity:Point = new Point();
 		private var _enabled:Boolean = true;
 		
 		/**
@@ -68,6 +69,8 @@ package com.nbilyk.utils {
 		private function mouseDownHandler(event:MouseEvent):void {
 			if (!enabled) return;
 			if (event.target is TextField && TextField(event.target).selectable) return;
+			if (event.target is RichEditableText && (RichEditableText(event.target).editable || RichEditableText(event.target).selectable)) return;
+			
 			if (hasMouseEventListeners(targetDisplayObject)) return;
 			
 			stop();
@@ -143,6 +146,7 @@ package com.nbilyk.utils {
 		}
 
 		public function setVelocity(value:Point):void {
+			if (!value) value = new Point();
 			if (!targetDisplayObject.stage) return;
 			targetDisplayObject.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
 			targetDisplayObject.stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
@@ -174,6 +178,9 @@ package com.nbilyk.utils {
 			}
 		}
 		
+		/**
+		 * Moves scroller which moves viewport into position
+		 * */
 		protected function moveScrollPosition(diff:Point):void {
 			if (horizontalScrollEnabled) {
 				target.horizontalScrollPosition -= diff.x;
