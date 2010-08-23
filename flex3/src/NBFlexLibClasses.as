@@ -55,5 +55,6 @@ package {
 		import com.nbilyk.naddress.NAddress; NAddress;
 		import com.nbilyk.naddress.NAddressPrettyHistory; NAddressPrettyHistory;
 		import com.nbilyk.display.BetterCanvas; BetterCanvas;
+		import com.nbilyk.utils.FunctionFactory; FunctionFactory;
 	}
 }
