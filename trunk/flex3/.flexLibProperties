@@ -2,7 +2,6 @@
 <flexLibProperties includeAllClasses="false" version="1">
   <includeClasses>
     <classEntry path="NBFlexLibClasses"/>
-    <classEntry path="com.nbilyk.display.BetterCanvas"/>
   </includeClasses>
   <includeResources>
     <resourceEntry destPath="defaults.css" sourcePath="defaults.css"/>

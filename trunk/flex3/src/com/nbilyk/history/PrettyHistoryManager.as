@@ -118,6 +118,7 @@ package com.nbilyk.history {
 		private static function clientAddedToStageHandler(event:Event):void {
 			register(IPrettyHistoryManagerClient(event.currentTarget));
 		}
+		
 		private static function clientRemovedFromStageHandler(event:Event):void {
 			unregister(IPrettyHistoryManagerClient(event.currentTarget));
 		}

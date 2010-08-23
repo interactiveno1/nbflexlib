@@ -49,7 +49,7 @@ package com.nbilyk.logging {
 
 		protected function mainKeyDownHandler(event:KeyboardEvent):void {
 			if (event.ctrlKey && event.keyCode == Keyboard.F12) {
-				// Ctrl + "="
+				// Ctrl + F12
 				visible = !visible;
 				if (visible)
 					refreshLog();
