@@ -256,12 +256,14 @@ package com.nbilyk.history {
 
 			for each (var registeredObject:IPrettyHistoryManagerClient in registeredObjects) {
 				var clientDepth:uint = registeredObject.getClientDepth();
-				if (clientDepth < startIndex || clientDepth >= endIndex) continue;
 				var n:uint = registeredObject.getParamCount();
+				if (clientDepth + n < startIndex || clientDepth >= endIndex) continue;
 				var saveValues:Array = registeredObject.saveState();
 				saveValues.length = n;
-				for (var i:uint = 0; i < n && i < endIndex - clientDepth; i++) {
-					clientValues[clientDepth - startIndex + i] = saveValues[i];
+				var offset:int = clientDepth - startIndex;
+				for (var i:uint = 0; i < n && i + clientDepth < endIndex; i++) {
+					if (i + offset < 0) continue;
+					clientValues[offset + i] = saveValues[i];
 				}
 			}
 			if (!clientValues.length) return null;
@@ -354,7 +356,7 @@ package com.nbilyk.history {
 			var sectionB:String = getSavedStateFragment(endIndex) || "";
 			var newFragment:String = fragmentSection;
 			if (sectionA) newFragment = sectionA + separator + newFragment;
-			if (sectionB) newFragment = newFragment + separator + sectionB;
+			if (sectionB) newFragment += separator + sectionB;
 			return newFragment;
 		}
 		
