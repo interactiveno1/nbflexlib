@@ -37,12 +37,12 @@ package com.nbilyk.utils {
 		 * @param transferNulls If true, null values from objectB will transfer to objectA
 		 * @param useCache If true, the type descriptor will be retrieved from DescribeTypeCache and not describeType
 		 */
-		public static function mergeObjects(objectA:*, objectB:*, transferNulls:Boolean = false, useCache:Boolean = true, recursive:Boolean = true):void {
+		public static function mergeObjects(objectA:*, objectB:*, transferNulls:Boolean = false, useCache:Boolean = true, recursive:Boolean = true, ignoreTransient:Boolean = false):void {
 			if (getQualifiedClassName(objectA) != getQualifiedClassName(objectB)) throw new ArgumentError("objectA and objectB are not the same type.");
-			internalMergeObjects(objectA, objectB, transferNulls, useCache, new Dictionary(true), recursive);
+			internalMergeObjects(objectA, objectB, transferNulls, useCache, new Dictionary(true), recursive, ignoreTransient);
 		}
 		
-		private static function internalMergeObjects(objectA:*, objectB:*, transferNulls:Boolean, useCache:Boolean, ref:Dictionary, recursive:Boolean):void {
+		private static function internalMergeObjects(objectA:*, objectB:*, transferNulls:Boolean, useCache:Boolean, ref:Dictionary, recursive:Boolean, ignoreTransient:Boolean):void {
 			if (getQualifiedClassName(objectA) != getQualifiedClassName(objectB)) return; // Do not try to merge objects of different types.
 			ref[objectA] = true;
 			var typeXml:XML;
@@ -53,6 +53,7 @@ package com.nbilyk.utils {
 			}
 			var properties:XMLList = typeXml.children().((name() == "accessor" && @access == "readwrite") || name() == "variable");
 			for each (var property:XML in properties) {
+				if (ignoreTransient && property.metadata.(@name == "Transient").length() > 0) continue;
 				var propertyValueA:* = objectA[property.@name];
 				var propertyValueB:* = objectB[property.@name];
 				if (transferNulls || propertyValueB != null) {
@@ -63,7 +64,7 @@ package com.nbilyk.utils {
 						// Not a primitive type, recurse into the sub-object.
 						if (propertyValueA != null && propertyValueB != null) {
 							if (!ref[propertyValueA]) {
-								internalMergeObjects(propertyValueA, propertyValueB, transferNulls, useCache, ref, recursive);
+								internalMergeObjects(propertyValueA, propertyValueB, transferNulls, useCache, ref, recursive, ignoreTransient);
 							}
 						} else {
 							objectA[property.@name] = propertyValueB;

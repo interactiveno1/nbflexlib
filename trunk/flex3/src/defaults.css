@@ -26,3 +26,7 @@ MessageNotifier {
 .errorMessageStyle {
 	color: #FF0000;
 }
+
+BetterFormItem {
+	default-selectable: true;
+}
