@@ -8,4 +8,5 @@
 	<component id="KineticScrollManager" class="com.nbilyk.utils.KineticScrollManager"/>
 	<component id="DebugPanel" class="com.nbilyk.logging.DebugPanel"/>
 	<component id="MessageNotifier" class="com.nbilyk.display.MessageNotifier"/>
+	<component id="PopUpDescriptor" class="com.nbilyk.popup.PopUpDescriptor"/>
 </componentPackage>
