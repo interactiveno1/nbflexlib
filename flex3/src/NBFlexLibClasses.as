@@ -1,4 +1,6 @@
 package {
+	import com.nbilyk.popup.PopUpDescriptor;
+
 	public class NBFlexLibClasses {
 		import com.nbilyk.utils.ComponentUtil; ComponentUtil; 
 		import com.nbilyk.events.LoaderCreationEvent; LoaderCreationEvent;
@@ -56,5 +58,7 @@ package {
 		import com.nbilyk.naddress.NAddressPrettyHistory; NAddressPrettyHistory;
 		import com.nbilyk.display.BetterCanvas; BetterCanvas;
 		import com.nbilyk.utils.FunctionFactory; FunctionFactory;
+		import com.nbilyk.popup.NPopUp; NPopUp;
+		import com.nbilyk.popup.PopUpDescriptor; PopUpDescriptor;
 	}
 }
