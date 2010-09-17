@@ -1,6 +1,4 @@
 package {
-	import com.nbilyk.popup.PopUpDescriptor;
-
 	public class NBFlexLibClasses {
 		import com.nbilyk.utils.ComponentUtil; ComponentUtil; 
 		import com.nbilyk.events.LoaderCreationEvent; LoaderCreationEvent;
@@ -60,5 +58,8 @@ package {
 		import com.nbilyk.utils.FunctionFactory; FunctionFactory;
 		import com.nbilyk.popup.NPopUp; NPopUp;
 		import com.nbilyk.popup.PopUpDescriptor; PopUpDescriptor;
+		import com.nbilyk.preloader.NFlexPreloader; NFlexPreloader;
+		import com.nbilyk.preloader.NPreloaderController; NPreloaderController;
+		import com.nbilyk.preloader.NPreloader; NPreloader;
 	}
 }

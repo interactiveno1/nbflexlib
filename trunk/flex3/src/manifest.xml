@@ -9,4 +9,5 @@
 	<component id="DebugPanel" class="com.nbilyk.logging.DebugPanel"/>
 	<component id="MessageNotifier" class="com.nbilyk.display.MessageNotifier"/>
 	<component id="PopUpDescriptor" class="com.nbilyk.popup.PopUpDescriptor"/>
+	<component id="NPreloader" class="com.nbilyk.preloader.NPreloader"/>
 </componentPackage>

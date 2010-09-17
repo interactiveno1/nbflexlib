@@ -2,6 +2,8 @@
 <flexLibProperties includeAllClasses="false" version="1">
   <includeClasses>
     <classEntry path="NBFlexLibClasses"/>
+    <classEntry path="com.nbilyk.preloader.NPreloader"/>
+    <classEntry path="com.nbilyk.preloader.NPreloaderController"/>
   </includeClasses>
   <includeResources>
     <resourceEntry destPath="defaults.css" sourcePath="defaults.css"/>

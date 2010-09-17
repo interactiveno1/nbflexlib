@@ -3,6 +3,11 @@ package com.nbilyk.utils {
 
 	public class FunctionFactory implements IFactory {
 		
+		public function FunctionFactory(funcVal:Function = null, argsVal:Array = null) {
+			func = funcVal;
+			args = argsVal;
+		}
+		
 		/**
 		 * The function to call when the factory is invoked. (Required)
 		 */
