@@ -29,15 +29,15 @@ package com.nbilyk.popup {
 		/**
 		 * The minimum width of the container.
 		 */
-		public var minWidth:Number = 300;
+		public var minWidth:Number = 50;
 		
 		/**
 		 * The minimum height of the container.
 		 */
-		public var minHeight:Number = 200;
+		public var minHeight:Number = 50;
 		
 		/**
-		 * 
+		 * Padding is the minimum distance between the pop-up container and parent. 
 		 */
 		public var paddingLeft:Number = 10;
 		
@@ -72,7 +72,7 @@ package com.nbilyk.popup {
 		public var containerFactory:IFactory;
 		
 		/**
-		 * The IFactory with which to create the View. This is expected to create an UIComponent object.
+		 * The IFactory with which to create the component to be placed in the Container. This is expected to create an UIComponent object.
 		 */
 		public var viewFactory:IFactory;
 		
@@ -90,12 +90,18 @@ package com.nbilyk.popup {
 		public var modal:Boolean = true;
 		
 		/**
+		 * If true, pressing escape will close the PopUp.
+		 */
+		public var escapeCloses:Boolean = true;
+		
+		/**
 		 * If true, the container will be sized and positioned automatically on parent and view resizes. 
 		 */
 		public var autoLayout:Boolean = true;
 
 		private var _container:Container;
 		private var _view:UIComponent;
+		private var _stage:Stage;
 
 		public function PopUpDescriptor() {
 			parent = UIComponent(ApplicationGlobals.application);
@@ -106,7 +112,8 @@ package com.nbilyk.popup {
 		}
 
 		public function get stage():Stage {
-			return ApplicationGlobals.application.stage;
+			if (!_stage) _stage = ApplicationGlobals.application.stage;
+			return _stage;
 		}
 		
 		/**
@@ -136,8 +143,19 @@ package com.nbilyk.popup {
 		 * Must only be called after createContainer();
 		 */
 		internal function createView():void {
-			_view = viewFactory.newInstance();
-			_container.addChild(view);
+			if (viewFactory) {
+				_view = viewFactory.newInstance();
+				_container.addChild(view);
+			}
+		}
+		
+		/**
+		 * close is called when the pop-up is closed.
+		 */
+		internal function close():void {
+			if (closeCallback != null) closeCallback.apply(null, closeCallbackArgs);
+			closeCallback = null;
+			closeCallbackArgs = null;
 		}
 		
 		/**
