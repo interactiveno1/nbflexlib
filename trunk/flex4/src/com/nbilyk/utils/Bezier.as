@@ -5,6 +5,7 @@ package com.nbilyk.utils {
 	public class Bezier {
 		
 		public static function drawBezier(g:Graphics, points:Array /* Type Point */, precision:Number = 1, isShape:Boolean = true):void {
+			if (points.length < 3) return;
 			var i:uint;
 			var startPoint:Point;
 			var endPoint:Point;
@@ -27,6 +28,7 @@ package com.nbilyk.utils {
 				yValues[i] = p.y;
 				i++;
 			}
+			
 			for (i = 0; i < 1000; i++) {
 				var xVal:Number = getBezier(i / 1000, startPoint.x, endPoint.x, xValues);
 				var yVal:Number = getBezier(i / 1000, startPoint.y, endPoint.y, yValues);
