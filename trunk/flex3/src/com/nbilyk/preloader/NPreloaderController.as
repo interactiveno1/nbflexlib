@@ -25,6 +25,11 @@ package com.nbilyk.preloader {
 		 */
 		public var label:String = "%3%% LOADED";
 		
+		/**
+		 * If indeterminate is true, percent is ignored and the view MovieClip will play indefinitely.
+		 */
+		public var indeterminate:Boolean;
+		
 		private var _view:MovieClip;
 		private var _percent:Number = 0;
 		private var _isPlaying:Boolean;
@@ -65,7 +70,7 @@ package com.nbilyk.preloader {
 		
 		private function enterFrameHandler(event:Event):void {
 			var currentPercent:Number = view.currentFrame / view.totalFrames;
-			isPlaying = currentPercent < percent;
+			isPlaying = indeterminate || currentPercent < percent;
 			
 			if (view.hasOwnProperty(labelField)) {
 				// Set the label
