@@ -24,6 +24,7 @@ package com.nbilyk.utils {
 			}
 			return false;
 		}
+		
 		public static function dateSwap(dateA:Date, dateB:Date):void {
 			var tmp:Number = dateA.time;
 			dateA.time = dateB.time;
