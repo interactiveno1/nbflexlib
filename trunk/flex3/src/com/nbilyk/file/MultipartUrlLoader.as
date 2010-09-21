@@ -4,7 +4,6 @@ package com.nbilyk.file {
 	import flash.net.URLRequestHeader;
 	import flash.net.URLRequestMethod;
 	import flash.utils.ByteArray;
-	import flash.utils.Endian;
 
 	public class MultipartUrlLoader extends URLLoader {
 
@@ -18,13 +17,26 @@ package com.nbilyk.file {
 			super(request);
 		}
 		
+		/**
+		 * Prepares the URLRequest, constructing the multi-part data as a ByteArray, then calls load.
+		 * 
+		 * @param formContents FormContent objects are used to describe a file or simple variable.
+		 * @param url The url to use in the request.
+		 * 
+		 * Dispatches:
+		 *   Event.COMPLETE 
+		 *   HTTPStatusEvent.HTTP_STATUS
+		 *   IOErrorEvent.IO_ERROR
+		 *   ProgressEvent.PROGRESS
+		 *   SecurityErrorEvent.SECURITY_ERROR
+		 */
 		public function multipartUpload(formContents:Vector.<FormContent>, url:String):void {
 			if (!formContents.length) throw new Error("formContents argument cannot be 0 length");
 			var boundary:String = "----------" + createUid(); //----------Ij5KM7GI3Ef1ae0gL6ei4GI3ei4KM7
 			var charSet:String = "ascii";
 			
 			var nL:String = "\r\n";
-			var data:ByteArray = new ByteArray();
+			var urlRequestData:ByteArray = new ByteArray();
 			
 			for each (var formContent:FormContent in formContents) {
 				if (!formContent.name || !formContent.contents) continue;
@@ -36,20 +48,19 @@ package com.nbilyk.file {
 					formContentStr += nL + "Content-Type: " + formContent.contentType;
 				}
 				formContentStr += nL + nL;
-				data.writeMultiByte(formContentStr, charSet);
+				urlRequestData.writeMultiByte(formContentStr, charSet);
 				formContent.contents.position = 0;
-				data.writeBytes(formContent.contents);
-				data.writeMultiByte(nL, charSet);
+				urlRequestData.writeBytes(formContent.contents);
+				urlRequestData.writeMultiByte(nL, charSet);
 			}
-			data.writeMultiByte("--" + boundary + "--", charSet);
+			urlRequestData.writeMultiByte("--" + boundary + "--", charSet);
 			
 			var acceptHeader:URLRequestHeader = new URLRequestHeader("Accept", "text/*");
 			var urlRequest:URLRequest = new URLRequest(url);
 			urlRequest.requestHeaders.push(acceptHeader);
-			urlRequest.data = data;
+			urlRequest.data = urlRequestData;
 			urlRequest.method = URLRequestMethod.POST;
 			urlRequest.contentType = "multipart/form-data; boundary=" + boundary;
-			
 			load(urlRequest);
 		}
 

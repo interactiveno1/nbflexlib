@@ -1,14 +1,34 @@
 package com.nbilyk.file {
 	import flash.utils.ByteArray;
 
+	/**
+	 * This class is used to create 
+	 */
 	public class FormContent {
 		
+		/**
+		 * @default form-data
+		 */
 		public var contentDisposition:String = "form-data";
+		
+		/**
+		 * The name of the variable.
+		 */
 		public var name:String;
+		
+		/**
+		 * The name of the file (leave null if not a file).
+		 */
 		public var fileName:String;
 		
+		/**
+		 * The mime type of the file (leave null if not a file).
+		 */
 		public var contentType:String;
 		
+		/**
+		 * The contents of the value.
+		 */
 		public var contents:ByteArray;
 		
 		public function FormContent(nameVal:String = "", contentsVal:ByteArray = null, fileNameVal:String = null, contentTypeVal:String = null) {
