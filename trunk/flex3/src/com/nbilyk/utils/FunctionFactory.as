@@ -1,22 +1,23 @@
 package com.nbilyk.utils {
+	
 	import mx.core.IFactory;
-
+	
 	public class FunctionFactory implements IFactory {
 		
-		public function FunctionFactory(funcVal:Function = null, argsVal:Array = null) {
-			func = funcVal;
-			args = argsVal;
-		}
+		/**
+		 * The arguments to pass to [func].
+		 */
+		public var args:Array;
 		
 		/**
 		 * The function to call when the factory is invoked. (Required)
 		 */
 		public var func:Function;
 		
-		/**
-		 * The arguments to pass to [func].
-		 */
-		public var args:Array;
+		public function FunctionFactory(funcVal:Function = null, argsVal:Array = null) {
+			func = funcVal;
+			args = argsVal;
+		}
 		
 		public function newInstance():* {
 			if (func == null) return null;

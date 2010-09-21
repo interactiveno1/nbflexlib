@@ -4,6 +4,8 @@
     <classEntry path="NBFlexLibClasses"/>
     <classEntry path="com.nbilyk.preloader.NPreloader"/>
     <classEntry path="com.nbilyk.preloader.NPreloaderController"/>
+    <classEntry path="com.nbilyk.file.FormContent"/>
+    <classEntry path="com.nbilyk.file.MultipartUrlLoader"/>
   </includeClasses>
   <includeResources>
     <resourceEntry destPath="defaults.css" sourcePath="defaults.css"/>
