@@ -4,6 +4,7 @@
     <classEntry path="NBFlexLibClasses"/>
     <classEntry path="com.nbilyk.preloader.NPreloader"/>
     <classEntry path="com.nbilyk.preloader.NPreloaderController"/>
+    <classEntry path="com.nbilyk.formatters.NDateTimeFormatter"/>
   </includeClasses>
   <includeResources>
     <resourceEntry destPath="defaults.css" sourcePath="defaults.css"/>

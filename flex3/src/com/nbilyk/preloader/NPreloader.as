@@ -35,8 +35,8 @@ package com.nbilyk.preloader {
 			super.resourcesChanged();
 			
 			if (!labelExplicitlySet) {
-				if (indeterminate) controller.label = resourceManager.getString("nbflexlib", "npreloader.label");
-				else controller.label = resourceManager.getString("nbflexlib", "npreloader.indeterminateLabel");
+				if (indeterminate) controller.label = resourceManager.getString("nbflexlib", "npreloader.indeterminateLabel");
+				else controller.label = resourceManager.getString("nbflexlib", "npreloader.label");
 			}
 		}
 		
@@ -72,6 +72,7 @@ package com.nbilyk.preloader {
 		
 		public function set percent(value:Number):void {
 			controller.percent = value;
+			invalidateSize();
 		}
 
 		public function get indeterminate():Boolean {
