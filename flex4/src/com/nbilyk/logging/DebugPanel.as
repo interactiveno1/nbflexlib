@@ -51,6 +51,7 @@ package com.nbilyk.logging {
 			if (event.ctrlKey && event.keyCode == Keyboard.F12) {
 				// Ctrl + "="
 				visible = !visible;
+				includeInLayout = !includeInLayout;
 				if (visible)
 					refreshLog();
 			}
@@ -102,7 +103,6 @@ package com.nbilyk.logging {
 		}
 		protected function validateLabels():void {
 			labelsAreValidFlag = true;
-			
 			closeButton.label = resourceManager.getString("nbflexlib", "logger.close");
 			clearButton.label = resourceManager.getString("nbflexlib", "logger.clearLog");
 			refreshButton.label = resourceManager.getString("nbflexlib", "logger.refresh");
@@ -148,6 +148,14 @@ package com.nbilyk.logging {
 		}
 		public function set level(value:int):void {
 			arrayTarget.level = value;
+		}
+		
+		public function get targetFilters():Array {
+			return arrayTarget.filters;
+		}
+		
+		public function set targetFilters(value:Array):void {
+			arrayTarget.filters = value;
 		}
 		
 		//----------------------------------

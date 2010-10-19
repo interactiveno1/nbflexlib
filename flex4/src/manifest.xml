@@ -6,5 +6,8 @@
 	<component id="CallbackFactory" class="com.nbilyk.factory.CallbackFactory"/>
 	<component id="RichHtmlText" class="com.nbilyk.controls.RichHtmlText"/>
 	<component id="FlexVideoPlayer" class="com.nbilyk.flexvideoplayer.FlexVideoPlayer"/>
+	<component id="NPreloader" class="com.nbilyk.preloader.NPreloader"/>
+	<component id="PopUpDescriptor" class="com.nbilyk.popup.PopUpDescriptor"/>
+	<component id="FlowLayout" class="com.nbilyk.layout.FlowLayout"/>
 </componentPackage>
 

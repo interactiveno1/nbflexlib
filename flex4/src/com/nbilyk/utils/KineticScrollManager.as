@@ -11,7 +11,6 @@ package com.nbilyk.utils {
 	import flash.utils.getTimer;
 	
 	import spark.components.RichEditableText;
-	import spark.core.IViewport;
 
 	/**
 	 * To use via mxml:
@@ -28,7 +27,7 @@ package com.nbilyk.utils {
 	public class KineticScrollManager {
 		private static const HISTORY_LENGTH:uint = 5; // The amount of mouse move events to keep track of
 
-		private var _target:IViewport;
+		private var _target:DisplayObject;
 		[ArrayElementType("Point")]
 		private var previousPoints:Array;
 		[ArrayElementType("int")]
@@ -45,19 +44,19 @@ package com.nbilyk.utils {
 		public var horizontalScrollEnabled:Boolean = true;
 		public var verticalScrollEnabled:Boolean = true;
 		
-		public function KineticScrollManager(targetVal:IViewport = null) {
+		public function KineticScrollManager(targetVal:DisplayObject = null) {
 			target = targetVal;
 		}
 
-		public function get targetDisplayObject():DisplayObject {
-			return _target as DisplayObject;
-		}
-		
-		public function get target():IViewport {
+		/**
+		 * The target DisplayObject for which to apply the kinetic scrolling.
+		 * Must have the properties horizontalScrollPosition and verticalScrollPosition
+		 */
+		public function get target():DisplayObject {
 			return _target;
 		}
 
-		public function set target(value:IViewport):void {
+		public function set target(value:DisplayObject):void {
 			if (_target) removeAllListeners();
 			_target = value;
 			if (value) {
@@ -66,18 +65,17 @@ package com.nbilyk.utils {
 			}
 		}
 
-		private function mouseDownHandler(event:MouseEvent):void {
+		protected function mouseDownHandler(event:MouseEvent):void {
 			if (!enabled) return;
 			if (event.target is TextField && TextField(event.target).selectable) return;
 			if (event.target is RichEditableText && (RichEditableText(event.target).editable || RichEditableText(event.target).selectable)) return; // Contrib: Judah Frangipane
-			
-			if (hasMouseEventListeners(targetDisplayObject)) return;
+			if (hasMouseEventListeners(target)) return;
 			
 			stop();
-			previousPoints = [new Point(targetDisplayObject.stage.mouseX, targetDisplayObject.stage.mouseY)];
+			previousPoints = [new Point(target.stage.mouseX, target.stage.mouseY)];
 			previousTimes = [getTimer()];
-			targetDisplayObject.stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler, false, 0, true);
-			targetDisplayObject.stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler, false, 0, true);
+			target.stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler, false, 0, true);
+			target.stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler, false, 0, true);
 		}
 		
 		private function hasMouseEventListeners(displayTarget:DisplayObject):Boolean {
@@ -87,13 +85,13 @@ package com.nbilyk.utils {
 			return false;
 		}
 
-		private function mouseMoveHandler(event:MouseEvent):void {
+		protected function mouseMoveHandler(event:MouseEvent):void {
 			if (!enabled) return;
 			if (!event.buttonDown) {
 				mouseUpHandler();
 				return;
 			}
-			var currPoint:Point = new Point(targetDisplayObject.stage.mouseX, targetDisplayObject.stage.mouseY);
+			var currPoint:Point = new Point(target.stage.mouseX, target.stage.mouseY);
 			var currTime:int = getTimer();
 			var previousPoint:Point = Point(previousPoints[previousPoints.length - 1]);
 			var diff:Point = currPoint.subtract(previousPoint);
@@ -109,24 +107,24 @@ package com.nbilyk.utils {
 			}
 		}
 
-		private function mouseUpHandler(event:MouseEvent = null):void {
-			targetDisplayObject.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
-			targetDisplayObject.stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+		protected function mouseUpHandler(event:MouseEvent = null):void {
+			target.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+			target.stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
 			if (!enabled) return;
-			target.addEventListener(Event.ENTER_FRAME, enterFrameHandler, false, 0, true);
 
-			var currPoint:Point = new Point(targetDisplayObject.stage.mouseX, targetDisplayObject.stage.mouseY);
+			var currPoint:Point = new Point(target.stage.mouseX, target.stage.mouseY);
 			var currTime:int = getTimer();
 			var firstPoint:Point = Point(previousPoints[0]);
 			var firstTime:int = int(previousTimes[0]);
 			var diff:Point = currPoint.subtract(firstPoint);
-			var time:Number = (currTime - firstTime) / (1000 / targetDisplayObject.stage.frameRate);
+			var time:Number = (currTime - firstTime) / (1000 / target.stage.frameRate);
 			velocity = new Point(diff.x / time, diff.y / time);
+			start();
 		}
 
-		private function enterFrameHandler(event:Event):void {
+		protected function enterFrameHandler(event:Event):void {
 			velocity = new Point(velocity.x * dampening, velocity.y * dampening);
-			var cM:Matrix = targetDisplayObject.transform.concatenatedMatrix;
+			var cM:Matrix = target.transform.concatenatedMatrix;
 			var localVelocity:Point = transformPointToLocal(velocity);
 			if (Math.abs(localVelocity.x) < .1) localVelocity.x = 0;
 			if (Math.abs(localVelocity.y) < .1) localVelocity.y = 0;
@@ -139,6 +137,10 @@ package com.nbilyk.utils {
 				event.stopImmediatePropagation();
 			}
 		}
+		
+		protected function start():void {
+			target.addEventListener(Event.ENTER_FRAME, enterFrameHandler, false, 0, true);
+		}
 
 		public function stop():void {
 			target.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
@@ -147,21 +149,24 @@ package com.nbilyk.utils {
 
 		public function setVelocity(value:Point):void {
 			if (!value) value = new Point();
-			if (!targetDisplayObject.stage) return;
-			targetDisplayObject.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
-			targetDisplayObject.stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
-			targetDisplayObject.addEventListener(Event.ENTER_FRAME, enterFrameHandler, false, 0, true);
-
+			if (!target.stage) return;
+			target.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+			target.stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+			
 			velocity = value;
+			start();
 		}
 
-		private function removeAllListeners():void {
+		/**
+		 * Removes all listeners from the target and stage.
+		 */
+		protected function removeAllListeners():void {
 			target.removeEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
 			target.removeEventListener(MouseEvent.CLICK, mouseClickHandler, true);
 			target.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
-			if (targetDisplayObject.stage) {
-				targetDisplayObject.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
-				targetDisplayObject.stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+			if (target.stage) {
+				target.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+				target.stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
 			}
 		}
 
@@ -183,15 +188,15 @@ package com.nbilyk.utils {
 		 * */
 		protected function moveScrollPosition(diff:Point):void {
 			if (horizontalScrollEnabled) {
-				target.horizontalScrollPosition -= diff.x;
+				Object(target).horizontalScrollPosition -= diff.x;
 			}
 			if (verticalScrollEnabled) {
-				target.verticalScrollPosition -= diff.y;
+				Object(target).verticalScrollPosition -= diff.y;
 			}
 		}
 		
 		private function transformPointToLocal(p:Point):Point {
-			var cM:Matrix = targetDisplayObject.transform.concatenatedMatrix.clone();
+			var cM:Matrix = target.transform.concatenatedMatrix.clone();
 			cM.tx = 0;
 			cM.ty = 0;
 			cM.invert();
