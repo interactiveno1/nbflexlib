@@ -1,5 +1,4 @@
 package {
-
 	public class NBFlexLibClasses {
 		import com.nbilyk.utils.ComponentUtil; ComponentUtil; 
 		import com.nbilyk.events.LoaderCreationEvent; LoaderCreationEvent;
@@ -42,5 +41,10 @@ package {
 		import com.nbilyk.utils.Bezier; Bezier;
 		import com.nbilyk.controls.RichHtmlText; RichHtmlText;
 		import com.nbilyk.styles.StyleClient; StyleClient;
+		import com.nbilyk.popup.NPopUp; NPopUp;
+		import com.nbilyk.popup.PopUpDescriptor; PopUpDescriptor;
+		import com.nbilyk.preloader.NFlexPreloader;	NFlexPreloader;
+		import com.nbilyk.preloader.NPreloader; NPreloader;
+		import com.nbilyk.preloader.NPreloaderController; NPreloaderController;
 	}
 }

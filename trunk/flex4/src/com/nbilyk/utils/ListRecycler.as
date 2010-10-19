@@ -1,6 +1,9 @@
 package com.nbilyk.utils {
 	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
 	
+	import mx.core.IVisualElement;
+	import mx.core.IVisualElementContainer;
 	import mx.utils.ObjectUtil;
 
 	public class ListRecycler {
@@ -23,9 +26,15 @@ package com.nbilyk.utils {
 		public function getRecycledComponent(vO:*, propName:String = "data"):* {
 			for each (var oldComponent:* in oldComponents) {
 				if (oldComponent[propName] == vO) {
-					var displayObject:DisplayObject = oldComponent as DisplayObject;
-					if (displayObject && displayObject.parent) {
-						displayObject.parent.setChildIndex(displayObject, displayObject.parent.numChildren - 1);
+					if (oldComponent is DisplayObject) {
+						var displayObject:DisplayObject = oldComponent as DisplayObject;
+						if (oldComponent.parent is IVisualElementContainer) {
+							var p:IVisualElementContainer = IVisualElementContainer(oldComponent.parent);
+							p.setElementIndex(oldComponent as IVisualElement, p.numElements - 1);
+						} else if (oldComponent.parent != null) {
+							var p2:DisplayObjectContainer = DisplayObjectContainer(oldComponent.parent);
+							p2.setChildIndex(displayObject, p2.numChildren - 1);
+						}
 					}
 					return oldComponent;
 				}
