@@ -9,9 +9,9 @@ package com.nbilyk.validators {
 		
 		public function ConfirmationValidator() {
 			super();
-			
 			triggerEvent = "";
 		}
+		
 		override protected function doValidation(value:Object):Array {
 			var results:Array = super.doValidation(value);
 			if (results.length > 0) return results;

@@ -95,6 +95,11 @@ package com.nbilyk.popup {
 		public var escapeCloses:Boolean = true;
 		
 		/**
+		 * If true, clicking outside of the PopUp area closes the PopUp.
+		 */
+		public var clickOutsideCloses:Boolean = true;
+		
+		/**
 		 * If true, the container will be sized and positioned automatically on parent and view resizes. 
 		 */
 		public var autoLayout:Boolean = true;
