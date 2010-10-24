@@ -1,4 +1,5 @@
 package com.nbilyk.popup {
+	import flash.display.DisplayObject;
 	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
@@ -75,7 +76,7 @@ package com.nbilyk.popup {
 			if (_popUpDescriptor.autoLayout) {
 				_popUpDescriptor.parent.addEventListener(ResizeEvent.RESIZE, resizeHandler);
 			}
-			if (_popUpDescriptor.modal) {
+			if (_popUpDescriptor.modal && _popUpDescriptor.clickOutsideCloses) {
 				_popUpDescriptor.stage.addEventListener(MouseEvent.CLICK, stageClickHandler);
 			}
 			if (_popUpDescriptor.escapeCloses) {

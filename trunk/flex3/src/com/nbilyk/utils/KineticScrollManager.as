@@ -10,8 +10,6 @@ package com.nbilyk.utils {
 	import flash.text.TextField;
 	import flash.utils.getTimer;
 
-	import mx.core.Container;
-
 	/**
 	 * To use via mxml:
 	 * <nbilyk:KineticScrollManager target="{targetContainer}"/>
@@ -27,7 +25,7 @@ package com.nbilyk.utils {
 	public class KineticScrollManager {
 		private static const HISTORY_LENGTH:uint = 5; // The amount of mouse move events to keep track of
 
-		private var _target:Container;
+		private var _target:DisplayObject;
 		[ArrayElementType("Point")]
 		private var previousPoints:Array;
 		[ArrayElementType("int")]
@@ -39,15 +37,15 @@ package com.nbilyk.utils {
 		public var horizontalScrollEnabled:Boolean = true;
 		public var verticalScrollEnabled:Boolean = true;
 
-		public function KineticScrollManager(targetVal:Container = null) {
+		public function KineticScrollManager(targetVal:DisplayObject = null) {
 			target = targetVal;
 		}
 
-		public function get target():Container {
+		public function get target():DisplayObject {
 			return _target;
 		}
 
-		public function set target(value:Container):void {
+		public function set target(value:DisplayObject):void {
 			if (_target) removeAllListeners();
 			_target = value;
 			if (value) {
@@ -166,10 +164,10 @@ package com.nbilyk.utils {
 
 		protected function moveScrollPosition(diff:Point):void {
 			if (horizontalScrollEnabled) {
-				target.horizontalScrollPosition -= diff.x;
+				Object(target).horizontalScrollPosition -= diff.x;
 			}
 			if (verticalScrollEnabled) {
-				target.verticalScrollPosition -= diff.y;
+				Object(target).verticalScrollPosition -= diff.y;
 			}
 		}
 

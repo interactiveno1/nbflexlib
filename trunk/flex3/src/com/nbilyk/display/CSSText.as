@@ -19,6 +19,31 @@ package com.nbilyk.display {
 		public function CSSText() {
 			super();
 		}
+		
+		override public function styleChanged(styleProp:String):void {
+			super.styleChanged(styleProp);
+			var allStyles:Boolean = styleProp == null || styleProp == "styleName";
+			if (allStyles || styleProp == "styleSheetAsset") {
+				refreshStyleSheetAsset();
+			}
+		}
+		
+		protected function refreshStyleSheetAsset():void {
+			var c:Class = getStyle("styleSheetAsset") as Class;
+			if (c) {
+				try {
+					var ba:ByteArray = new c();
+					ba.position = 0;
+					var css:String = ba.readUTFBytes(ba.bytesAvailable);
+					
+					var newStyleSheet:StyleSheet = new StyleSheet();
+					newStyleSheet.parseCSS(css);
+					styleSheet = newStyleSheet;
+				} catch (error:Error) {
+					dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, error.message));
+				}
+			}
+		}
 
 		[Bindable]
 		public function get styleSheetUrl():String {
@@ -32,20 +57,7 @@ package com.nbilyk.display {
 
 		override public function stylesInitialized():void {
 			super.stylesInitialized();
-			var c:Class = getStyle("styleSheetAsset") as Class;
-			if (c) {
-				try {
-					var ba:ByteArray = new c();
-					ba.position = 0;
-					var css:String = ba.readUTFBytes(ba.bytesAvailable);
-
-					var newStyleSheet:StyleSheet = new StyleSheet();
-					newStyleSheet.parseCSS(css);
-					styleSheet = newStyleSheet;
-				} catch (error:Error) {
-					dispatchEvent(new IOErrorEvent(IOErrorEvent.IO_ERROR, false, false, error.message));
-				}
-			}
+			refreshStyleSheetAsset();
 		}
 
 		public function loadStyleSheet(url:String):void {
