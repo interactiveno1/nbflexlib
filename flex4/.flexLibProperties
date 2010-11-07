@@ -2,7 +2,6 @@
 <flexLibProperties includeAllClasses="false" version="1">
   <includeClasses>
     <classEntry path="NBFlexLibClasses"/>
-    <classEntry path="com.nbilyk.flexvideoplayer.VideoControlBar"/>
   </includeClasses>
   <includeResources>
     <resourceEntry destPath="manifest.xml" sourcePath="manifest.xml"/>

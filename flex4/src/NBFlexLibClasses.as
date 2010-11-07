@@ -46,5 +46,7 @@ package {
 		import com.nbilyk.preloader.NFlexPreloader;	NFlexPreloader;
 		import com.nbilyk.preloader.NPreloader; NPreloader;
 		import com.nbilyk.preloader.NPreloaderController; NPreloaderController;
+		import com.nbilyk.utils.FunctionFactory; FunctionFactory;
+		import com.nbilyk.file.MultipartUrlLoader; MultipartUrlLoader;
 	}
 }
