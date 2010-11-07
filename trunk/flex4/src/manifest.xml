@@ -9,5 +9,6 @@
 	<component id="NPreloader" class="com.nbilyk.preloader.NPreloader"/>
 	<component id="PopUpDescriptor" class="com.nbilyk.popup.PopUpDescriptor"/>
 	<component id="FlowLayout" class="com.nbilyk.layout.FlowLayout"/>
+	<component id="FunctionFactory" class="com.nbilyk.utils.FunctionFactory"/>
 </componentPackage>
 

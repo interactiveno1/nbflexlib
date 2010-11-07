@@ -9,6 +9,7 @@ package com.nbilyk.popup {
 	import mx.core.UIComponent;
 	
 	import spark.components.TitleWindow;
+	import spark.layouts.BasicLayout;
 
 	public class PopUpDescriptor {
 		
@@ -20,12 +21,12 @@ package com.nbilyk.popup {
 		/**
 		 * The desired width of the container.
 		 */
-		public var width:Number = 500;
+		public var width:Number;
 		
 		/**
 		 * The desired height of the container.
 		 */
-		public var height:Number = 400;
+		public var height:Number;
 		
 		/**
 		 * The minimum width of the container.
@@ -114,6 +115,9 @@ package com.nbilyk.popup {
 		public function PopUpDescriptor() {
 			parent = UIComponent(FlexGlobals.topLevelApplication);
 			var titleWindowFactory:ClassFactory = new ClassFactory(TitleWindow);
+			var basicLayout:BasicLayout = new BasicLayout();
+			basicLayout.clipAndEnableScrolling = true;
+			titleWindowFactory.properties = { layout: basicLayout };
 			containerFactory = titleWindowFactory;
 			layoutFunction = defaultLayoutFunction;
 		}
@@ -176,8 +180,11 @@ package com.nbilyk.popup {
 			if (!container) return;
 			var parentW:Number = parent.width - paddingLeft - paddingRight;
 			var parentH:Number = parent.height - paddingTop - paddingBottom;
-			var newW:Number = Math.max(minWidth, Math.min(width, parentW));
-			var newH:Number = Math.max(minHeight, Math.min(height, parentH));
+			var w:Number = isNaN(width) ? container.measuredWidth : width;
+			var h:Number = isNaN(height) ? container.measuredHeight : height;
+			var newW:Number = Math.max(minWidth, Math.min(w, parentW));
+			var newH:Number = Math.max(minHeight, Math.min(h, parentH));
+			//container.setActualSize(newW, newH);
 			container.width = newW;
 			container.height = newH;
 			// Center the container within the parent.
