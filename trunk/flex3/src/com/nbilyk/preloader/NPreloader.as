@@ -118,5 +118,14 @@ package com.nbilyk.preloader {
 			labelExplicitlySet = true;
 		}
 
+		/**
+		 * If visible = false, remove the view so we don't constantly redraw the invisible animation and respond to enter frame events..
+		 */
+		override public function setVisible(value:Boolean, noEvent:Boolean = false):void {
+			if (visible == value) return; // no-op
+			super.setVisible(value, noEvent);
+			if (!value) preloaderClass = null;	
+			if (value) createPreloaderView();
+		}
 	}
 }
