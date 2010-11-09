@@ -59,14 +59,12 @@ package com.nbilyk.history {
 		private var logger:ILogger = Log.getLogger("com.nbilyk.history.PrettyHistoryManager");
 
 		public static function get instance():PrettyHistoryManager {
-			if (!_instance) _instance = new PrettyHistoryManager(new SingletonEnforcer());
+			if (!_instance) _instance = new PrettyHistoryManager();
 			return _instance;
 		}
 
-		public function PrettyHistoryManager(s:SingletonEnforcer) {
+		public function PrettyHistoryManager() {
 			super();
-
-			if (_instance) throw new Error("Instance already exists.");
 
 			if (!checkJavascriptEnabled()) {
 				logger.info("Javascript unavailable. Only working with explicitly set fragments.");

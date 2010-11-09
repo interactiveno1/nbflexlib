@@ -103,6 +103,11 @@ package com.nbilyk.popup {
 		 * If true, the container will be sized and positioned automatically on parent and view resizes. 
 		 */
 		public var autoLayout:Boolean = true;
+		
+		/**
+		 * The default container is a TitleWindow. This object will set the properties on the TitleWindow if this default is used.
+		 */
+		public var defaultTitleWindowProperties:Object = { showCloseButton: true };
 
 		private var _container:Container;
 		private var _view:UIComponent;
@@ -111,7 +116,7 @@ package com.nbilyk.popup {
 		public function PopUpDescriptor() {
 			parent = UIComponent(ApplicationGlobals.application);
 			var titleWindowFactory:ClassFactory = new ClassFactory(TitleWindow);
-			titleWindowFactory.properties = {showCloseButton: true};
+			titleWindowFactory.properties = defaultTitleWindowProperties;
 			containerFactory = titleWindowFactory;
 			layoutFunction = defaultLayoutFunction;
 		}
@@ -142,6 +147,7 @@ package com.nbilyk.popup {
 		 */
 		internal function createContainer():void {
 			_container = containerFactory.newInstance();
+			_container.isPopUp = true;
 		}
 		
 		/**
