@@ -28,7 +28,7 @@ package com.nbilyk.utils {
 				if (oldComponent[propName] == vO) {
 					if (oldComponent is DisplayObject) {
 						var displayObject:DisplayObject = oldComponent as DisplayObject;
-						if (oldComponent.parent is IVisualElementContainer) {
+						if (oldComponent is IVisualElement && oldComponent.parent is IVisualElementContainer) {
 							var p:IVisualElementContainer = IVisualElementContainer(oldComponent.parent);
 							p.setElementIndex(oldComponent as IVisualElement, p.numElements - 1);
 						} else if (oldComponent.parent != null) {
@@ -50,7 +50,11 @@ package com.nbilyk.utils {
 				if (newComponents.indexOf(oldComponent) == -1) {
 					var displayObject:DisplayObject = oldComponent as DisplayObject;
 					if (displayObject && displayObject.parent) {
-						displayObject.parent.removeChild(displayObject);
+						if (displayObject is IVisualElement && displayObject.parent is IVisualElementContainer) {
+							IVisualElementContainer(displayObject.parent).removeElement(IVisualElement(displayObject));
+						} else {
+							displayObject.parent.removeChild(displayObject);
+						}
 					}
 				}
 			}

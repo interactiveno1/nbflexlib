@@ -59,14 +59,12 @@ package com.nbilyk.history {
 		private var logger:ILogger = Log.getLogger("com.nbilyk.history.PrettyHistoryManager");
 
 		public static function get instance():PrettyHistoryManager {
-			if (!_instance) _instance = new PrettyHistoryManager(new SingletonEnforcer());
+			if (!_instance) _instance = new PrettyHistoryManager();
 			return _instance;
 		}
 
-		public function PrettyHistoryManager(s:SingletonEnforcer) {
+		public function PrettyHistoryManager() {
 			super();
-
-			if (_instance) throw new Error("Instance already exists.");
 
 			if (!checkJavascriptEnabled()) {
 				logger.info("Javascript unavailable. Only working with explicitly set fragments.");
@@ -93,13 +91,6 @@ package com.nbilyk.history {
 		}
 		
 		/**
-		 * @see mx.core.Application#callLater
-		 */
-		private function callLater(method:Function, args:Array = null):void {
-			app.callLater(method, args);
-		}
-
-		/**
 		 * Causes the client to automatically be registered and unregistered as it's added and removed from the stage. 
 		 * @param client The DisplayObject to watch.
 		 */
@@ -125,6 +116,7 @@ package com.nbilyk.history {
 		private static function clientAddedToStageHandler(event:Event):void {
 			register(IPrettyHistoryManagerClient(event.currentTarget));
 		}
+		
 		private static function clientRemovedFromStageHandler(event:Event):void {
 			unregister(IPrettyHistoryManagerClient(event.currentTarget));
 		}
@@ -142,7 +134,6 @@ package com.nbilyk.history {
 		 *  @param client
 		 */
 		public function register(client:IPrettyHistoryManagerClient):void {
-			if (!app.historyManagementEnabled) return;
 			unregister(client);
 			registeredObjects.push(client);
 			clientsPendingLoad[client] = true;
@@ -156,8 +147,6 @@ package com.nbilyk.history {
 		 * @return Returns <code>true</code> if the client was found. 
 		 */
 		public function unregister(client:IPrettyHistoryManagerClient, unregisterChildren:Boolean = false):Boolean {
-			if (!app.historyManagementEnabled) return false;
-			
 			var index:int = registeredObjects.indexOf(client);
 			if (index == -1) return false;
 			registeredObjects.splice(index, 1);
@@ -218,7 +207,7 @@ package com.nbilyk.history {
 		 * Flags the client's current state to be saved to the URL.
 		 */
 		public function save(client:IPrettyHistoryManagerClient):void {
-			if (!app.historyManagementEnabled || isLoadingState) return;
+			if (isLoadingState) return;
 			clientsPendingSave[client] = true;
 			invalidateBrowserFragment();
 		}
@@ -227,7 +216,7 @@ package com.nbilyk.history {
 		 * Flags the url as invalid and calls saveState on every registered client.
 		 */
 		public function saveAll():void {
-			if (!app.historyManagementEnabled || isLoadingState) return;
+			if (isLoadingState) return;
 			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
 				clientsPendingSave[client] = true;
 			}
@@ -245,7 +234,6 @@ package com.nbilyk.history {
 		 * Flags the client's loadState to be called with the corresponding url parameters.
 		 */
 		public function load(client:IPrettyHistoryManagerClient):void {
-			if (!app.historyManagementEnabled) return;
 			clientsPendingLoad[client] = true;
 			invalidateState();
 		}
@@ -262,12 +250,14 @@ package com.nbilyk.history {
 
 			for each (var registeredObject:IPrettyHistoryManagerClient in registeredObjects) {
 				var clientDepth:uint = registeredObject.getClientDepth();
-				if (clientDepth < startIndex || clientDepth >= endIndex) continue;
 				var n:uint = registeredObject.getParamCount();
+				if (clientDepth + n < startIndex || clientDepth >= endIndex) continue;
 				var saveValues:Array = registeredObject.saveState();
 				saveValues.length = n;
-				for (var i:uint = 0; i < n && i < endIndex - clientDepth; i++) {
-					clientValues[clientDepth - startIndex + i] = saveValues[i];
+				var offset:int = clientDepth - startIndex;
+				for (var i:uint = 0; i < n && i + clientDepth < endIndex; i++) {
+					if (i + offset < 0) continue;
+					clientValues[offset + i] = saveValues[i];
 				}
 			}
 			if (!clientValues.length) return null;
@@ -360,7 +350,7 @@ package com.nbilyk.history {
 			var sectionB:String = getSavedStateFragment(endIndex) || "";
 			var newFragment:String = fragmentSection;
 			if (sectionA) newFragment = sectionA + separator + newFragment;
-			if (sectionB) newFragment = newFragment + separator + sectionB;
+			if (sectionB) newFragment += separator + sectionB;
 			return newFragment;
 		}
 		
@@ -416,10 +406,8 @@ package com.nbilyk.history {
 		 */
 		protected function validateState():void {
 			stateIsValidFlag = true;
-			if (!app.historyManagementEnabled) return;
 			isLoadingState = true;
 			var fragmentSplit:Array = action.split(separator);
-			var fragmentSplitL:uint = fragmentSplit.length;
 			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
 				if (!clientsPendingLoad[client]) continue;
 				var clientDepth:uint = client.getClientDepth();
@@ -432,14 +420,12 @@ package com.nbilyk.history {
 				if (defaultArgs != null) {
 					delete clientsPendingLoad[client];
 					defaultArgs.length = clientParamCount;
-					
-					// Check if the parameters to the client have changed.
+					// Check if the parameters to the client have changed and apply default arguments.
 					var hasChanged:Boolean = false;
 					for (var i:uint = 0; i < clientParamCount; i++) {
 						if (!newArgs[i]) newArgs[i] = defaultArgs[i];
 						if (newArgs[i] != previousArgs[i]) {
 							hasChanged = true;
-							break;
 						}
 					}
 					if (hasChanged) client.loadState(newArgs);

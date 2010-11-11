@@ -107,6 +107,11 @@ package com.nbilyk.popup {
 		 * If true, the container will be sized and positioned automatically on parent and view resizes. 
 		 */
 		public var autoLayout:Boolean = true;
+		
+		/**
+		 * The default container is a TitleWindow. This object will set the properties on the TitleWindow if this default is used.
+		 */
+		public var defaultTitleWindowProperties:Object = {};
 
 		private var _container:UIComponent;
 		private var _view:UIComponent;
@@ -115,9 +120,10 @@ package com.nbilyk.popup {
 		public function PopUpDescriptor() {
 			parent = UIComponent(FlexGlobals.topLevelApplication);
 			var titleWindowFactory:ClassFactory = new ClassFactory(TitleWindow);
+			titleWindowFactory.properties = defaultTitleWindowProperties;
 			var basicLayout:BasicLayout = new BasicLayout();
 			basicLayout.clipAndEnableScrolling = true;
-			titleWindowFactory.properties = { layout: basicLayout };
+			titleWindowFactory.properties.layout = basicLayout;
 			containerFactory = titleWindowFactory;
 			layoutFunction = defaultLayoutFunction;
 		}

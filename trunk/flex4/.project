@@ -14,6 +14,5 @@
 	<natures>
 		<nature>com.adobe.flexbuilder.project.flexlibnature</nature>
 		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
-		<nature>com.powerflasher.fdt.core.FlashNature</nature>
 	</natures>
 </projectDescription>

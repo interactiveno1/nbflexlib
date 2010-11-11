@@ -10,5 +10,11 @@
 	<component id="PopUpDescriptor" class="com.nbilyk.popup.PopUpDescriptor"/>
 	<component id="FlowLayout" class="com.nbilyk.layout.FlowLayout"/>
 	<component id="FunctionFactory" class="com.nbilyk.utils.FunctionFactory"/>
+	
+	<!-- Old -->
+	<component id="BetterFormItem" class="com.nbilyk.controls.BetterFormItem"/>
+	<component id="CSSImage" class="com.nbilyk.controls.CSSImage"/>
+	<component id="CSSText" class="com.nbilyk.controls.CSSText"/>
+	<component id="GradientCanvas" class="com.nbilyk.controls.GradientCanvas"/>
 </componentPackage>
 

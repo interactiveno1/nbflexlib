@@ -4,20 +4,21 @@ package com.nbilyk.logging {
 	import flash.events.MouseEvent;
 	import flash.ui.Keyboard;
 	
-	import mx.containers.HBox;
-	import mx.containers.VBox;
-	import mx.controls.Button;
 	import mx.controls.TextArea;
 	import mx.logging.Log;
+	
+	import spark.components.Button;
+	import spark.components.HGroup;
+	import spark.components.VGroup;
 
 	[ResourceBundle("nbflexlib")]
-	public class DebugPanel extends VBox {
+	public class DebugPanel extends VGroup {
 		
 		protected var arrayTarget:ArrayTarget;
 		
 		// Stage instances
 		protected var debugText:TextArea;
-		protected var controlsContainer:HBox;
+		protected var controlsContainer:HGroup;
 		protected var closeButton:Button;
 		protected var clearButton:Button;
 		protected var refreshButton:Button;
@@ -72,23 +73,23 @@ package com.nbilyk.logging {
 			debugText = new TextArea();
 			debugText.percentWidth = 100;
 			debugText.percentHeight = 100;
-			addChild(debugText);
+			addElement(debugText);
 			
-			controlsContainer = new HBox();
+			controlsContainer = new HGroup();
 			
 			closeButton = new Button();
 			closeButton.addEventListener(MouseEvent.CLICK, closeClickHandler);
-			controlsContainer.addChild(closeButton);
+			controlsContainer.addElement(closeButton);
 			
 			clearButton = new Button();
 			clearButton.addEventListener(MouseEvent.CLICK, clearClickHandler);
-			controlsContainer.addChild(clearButton);
+			controlsContainer.addElement(clearButton);
 			
 			refreshButton = new Button();
 			refreshButton.addEventListener(MouseEvent.CLICK, refreshClickHandler);
-			controlsContainer.addChild(refreshButton);
+			controlsContainer.addElement(refreshButton);
 			
-			addChild(controlsContainer);
+			addElement(controlsContainer);
 		}
 		
 		override protected function commitProperties():void {
