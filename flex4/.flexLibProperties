@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<flexLibProperties includeAllClasses="false" version="1">
+<flexLibProperties includeAllClasses="false" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="NBFlexLibClasses"/>
   </includeClasses>
   <includeResources>
     <resourceEntry destPath="manifest.xml" sourcePath="manifest.xml"/>
     <resourceEntry destPath="defaults.css" sourcePath="defaults.css"/>
-    <resourceEntry destPath="videoPlayerSkin.swf" sourcePath="videoPlayerSkin.swf"/>
   </includeResources>
   <namespaceManifests>
     <namespaceManifestEntry manifest="manifest.xml" namespace="http://www.nbilyk.com/2009"/>
