@@ -69,7 +69,7 @@ package com.nbilyk.utils {
 			if (!enabled) return;
 			if (event.target is TextField && TextField(event.target).selectable) return;
 			if (event.target is RichEditableText && (RichEditableText(event.target).editable || RichEditableText(event.target).selectable)) return; // Contrib: Judah Frangipane
-			if (hasMouseEventListeners(target)) return;
+			if (hasMouseEventListeners(DisplayObject(event.target))) return;
 			
 			stop();
 			previousPoints = [new Point(target.stage.mouseX, target.stage.mouseY)];

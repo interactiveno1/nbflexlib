@@ -54,10 +54,10 @@ package com.nbilyk.controls {
 			super();
 			
 			defaultContainerLayout = new HorizontalLayout();
-			defaultContainerLayout.paddingLeft = 4;
-			defaultContainerLayout.paddingTop = 4;
-			defaultContainerLayout.paddingRight = 4;
-			defaultContainerLayout.paddingBottom = 4;
+			defaultContainerLayout.paddingLeft = 6;
+			defaultContainerLayout.paddingTop = 6;
+			defaultContainerLayout.paddingRight = 6;
+			defaultContainerLayout.paddingBottom = 6;
 		}
 		
 		/**
