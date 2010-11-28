@@ -31,7 +31,7 @@ package com.nbilyk.logging {
 			super();
 			
 			arrayTarget = new ArrayTarget();
-			Log.addTarget(arrayTarget);
+			//Log.addTarget(arrayTarget);
 			
 			addEventListener(Event.ADDED_TO_STAGE, addedToStageHandler, false, 0, true);
 			addEventListener(Event.REMOVED_FROM_STAGE, removedFromStageHandler, false, 0, true);

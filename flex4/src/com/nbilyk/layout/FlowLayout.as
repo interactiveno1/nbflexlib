@@ -1,5 +1,8 @@
 package com.nbilyk.layout {
+	import flash.utils.setTimeout;
+	
 	import mx.core.ILayoutElement;
+	import mx.core.UIComponent;
 	
 	import spark.components.supportClasses.GroupBase;
 	import spark.layouts.supportClasses.LayoutBase;
@@ -16,57 +19,64 @@ package com.nbilyk.layout {
 		public var paddingBottom:Number = 0;
 		public var horizontalGap:Number = 5;
 		public var verticalGap:Number = 5;
+		
+		private var previousContainerWidth:Number = Number.MAX_VALUE;
+		private var previousMeasuredHeight:Number = Number.MAX_VALUE;
 
 		override public function measure():void {
-			var totalWidth:Number = 0;
-			var totalHeight:Number = 0;
-			var layoutTarget:GroupBase = target;
-			var n:int = layoutTarget.numElements;
-			for (var i:int = 0; i < n; i++) {
-				var element:ILayoutElement = useVirtualLayout ? layoutTarget.getVirtualElementAt(i) : layoutTarget.getElementAt(i);
-				if (!element) element = typicalLayoutElement;
-				var elementWidth:Number = element.getPreferredBoundsWidth();
-				var elementHeight:Number = element.getPreferredBoundsHeight();
-				totalWidth += elementWidth;
-				totalHeight = Math.max(totalHeight, elementHeight);
-			}
-			if (n > 0) totalWidth += (n - 1) * horizontalGap;
-			layoutTarget.measuredWidth = paddingLeft + totalWidth + paddingRight;
-			layoutTarget.measuredHeight = paddingTop + totalHeight + paddingBottom;
-			layoutTarget.measuredMinWidth = layoutTarget.measuredWidth ;
-			layoutTarget.measuredMinHeight = layoutTarget.measuredHeight;
+			layout(previousContainerWidth, false);
 		}
 		
 		override public function updateDisplayList(containerWidth:Number, containerHeight:Number):void {
+			layout(containerWidth, true);
+		}
+		
+		protected function layout(containerWidth:Number, update:Boolean):void {
 			var x:Number = paddingLeft;
 			var y:Number = paddingTop;
 			var availableWidth:Number = containerWidth - paddingLeft - paddingRight;
-
+			
 			var layoutTarget:GroupBase = target;
 			var n:int = layoutTarget.numElements;
+			if (!n) return;
 			var rowHeight:Number = 0;
-			var rightBounds:Number = 0;
+			var rightBounds:Number = paddingLeft;
+			var bottomBounds:Number = paddingTop;
 			for (var i:int = 0; i < n; i++) {
 				var element:ILayoutElement = layoutTarget.getElementAt(i);
 				element.setLayoutBoundsSize(NaN, NaN);
-
+				if (!element.includeInLayout) continue;
+				
 				var elementWidth:Number = element.getLayoutBoundsWidth();
 				var elementHeight:Number = element.getLayoutBoundsHeight();
 				rowHeight = Math.max(rowHeight, elementHeight);
-
+				
 				if (x + elementWidth > availableWidth) {
 					x = paddingLeft;
 					y += rowHeight + verticalGap;
 					rowHeight = 0;
 				}
-				element.setLayoutBoundsPosition(x, y);
-				x += elementWidth + horizontalGap;
+				if (update) element.setLayoutBoundsPosition(x, y);
 				rightBounds = Math.max(x + elementWidth, rightBounds);
+				bottomBounds = Math.max(y + elementHeight, bottomBounds);
+				x += elementWidth + horizontalGap;
 			}
 			
-			var h:Number = Math.ceil(y + rowHeight + paddingBottom);
-			layoutTarget.setContentSize(Math.ceil(rightBounds + paddingRight), h);
-			layoutTarget.measuredHeight = h;
+			var w:Number = Math.ceil(rightBounds + paddingRight);
+			var h:Number = Math.ceil(bottomBounds + paddingBottom);
+			if (update) {
+				layoutTarget.setContentSize(w, h);
+				if (containerWidth != previousContainerWidth || h != previousMeasuredHeight) {
+					previousContainerWidth = containerWidth;
+					if (layoutTarget.parent is UIComponent) layoutTarget.callLater(UIComponent(layoutTarget.parent).invalidateSize);
+				}
+			} else {
+				layoutTarget.measuredWidth = w;
+				layoutTarget.measuredMinWidth = w;
+				layoutTarget.measuredHeight = h;
+				layoutTarget.measuredMinHeight = h;
+				previousMeasuredHeight = h;
+			}
 		}
 	}
 }
