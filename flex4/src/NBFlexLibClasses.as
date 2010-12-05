@@ -22,6 +22,7 @@ package {
 	import com.nbilyk.naddress.NAddress;
 	import com.nbilyk.naddress.NAddressPrettyHistory;
 	import com.nbilyk.naddress.events.NAddressEvent;
+	import com.nbilyk.popup.IPopUpDescriptor;
 	import com.nbilyk.popup.NPopUp;
 	import com.nbilyk.popup.PopUpDescriptor;
 	import com.nbilyk.preloader.NFlexPreloader;
@@ -81,6 +82,7 @@ package {
 		NAddress;
 		NAddressPrettyHistory;
 		NAddressEvent;
+		IPopUpDescriptor;
 		NPopUp;
 		PopUpDescriptor;
 		NFlexPreloader;

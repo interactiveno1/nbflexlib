@@ -7,16 +7,12 @@ package com.nbilyk.popup {
 	import mx.core.IFactory;
 	import mx.core.IVisualElementContainer;
 	import mx.core.UIComponent;
+	import mx.events.CloseEvent;
 	
 	import spark.components.TitleWindow;
 	import spark.layouts.BasicLayout;
 
-	public class PopUpDescriptor {
-		
-		/**
-		 * The parent to which this PopUp will be added.
-		 */
-		public var parent:UIComponent;
+	public class PopUpDescriptor implements IPopUpDescriptor {
 		
 		/**
 		 * The desired width of the container.
@@ -79,43 +75,18 @@ package com.nbilyk.popup {
 		public var viewFactory:IFactory;
 		
 		/**
-		 * The method that positions and sizes the container within its parent.
-		 * It should have the signature:
-		 * 	layoutFunction(popUpDescriptor:PopUpDescriptor):void
-		 */
-		public var layoutFunction:Function;
-		
-		/**
-		 * If true, the container is modal which means that
-		 * the user will not be able to interact with other popups until the window
-		 * is removed.
-		 * This also defines if clicking outside of the container closes the PopUp.
-		 */
-		public var modal:Boolean = true;
-		
-		/**
-		 * If true, pressing escape will close the PopUp.
-		 */
-		public var escapeCloses:Boolean = true;
-		
-		/**
-		 * If true, clicking outside of the PopUp area closes the PopUp.
-		 */
-		public var clickOutsideCloses:Boolean = true;
-		
-		/**
-		 * If true, the container will be sized and positioned automatically on parent and view resizes. 
-		 */
-		public var autoLayout:Boolean = true;
-		
-		/**
 		 * The default container is a TitleWindow. This object will set the properties on the TitleWindow if this default is used.
 		 */
 		public var defaultTitleWindowProperties:Object = {};
 
 		private var _container:UIComponent;
 		private var _view:UIComponent;
-		private var _stage:Stage;
+		private var _parent:UIComponent;
+		private var _modal:Boolean = true;
+		private var _escapeCloses:Boolean = true;
+		private var _clickOutsideCloses:Boolean = true;
+		private var _autoLayout:Boolean = true;
+		private var _layoutFunction:Function;
 
 		public function PopUpDescriptor() {
 			parent = UIComponent(FlexGlobals.topLevelApplication);
@@ -128,55 +99,79 @@ package com.nbilyk.popup {
 			layoutFunction = defaultLayoutFunction;
 		}
 
-		public function get stage():Stage {
-			if (!_stage) _stage = FlexGlobals.topLevelApplication.stage;
-			return _stage;
-		}
-		
 		/**
-		 * The component created with the containerFactory.
-		 * @see #containerFactory
+		 * The container created by the containerFactory. 
+		 * If this is set manually, the containerFactory will not be used.
 		 */
 		public function get container():UIComponent {
 			return _container;
 		}
 		
+		public function set container(value:UIComponent):void {
+			_container = value;
+		}
+		
 		/**
-		 * The component created with the viewFactory.
-		 * @see #viewFactory
+		 * The view created by the viewFactory.  
+		 * If this is set manually, the viewFactory will not be used.
 		 */
 		public function get view():UIComponent {
 			return _view;
 		}
 		
+		public function set view(value:UIComponent):void {
+			_view = value;
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get parent():UIComponent {
+			return _parent;
+		}
+
+		public function set parent(value:UIComponent):void {
+			_parent = value;
+		}
+		
+		
 		/**
 		 * Using the containerFactory, creates the new container.
 		 */
-		internal function createContainer():void {
-			_container = containerFactory.newInstance();
-		}
-		
-		/**
-		 * Must only be called after createContainer();
-		 */
-		internal function createView():void {
-			if (viewFactory) {
-				_view = viewFactory.newInstance();
-				if (_container is IVisualElementContainer) {
-					IVisualElementContainer(_container).addElement(_view);
-				} else {
-					_container.addChild(_view);
+		public function createPopUp():UIComponent {
+			if (!_container) _container = containerFactory.newInstance();
+			
+			if (viewFactory) _view = viewFactory.newInstance();
+			if (view) {
+				view.addEventListener(CloseEvent.CLOSE, viewCloseHandler, false, 0, true);
+				if (!view.parent) {
+					if (_container is IVisualElementContainer) {
+						IVisualElementContainer(_container).addElement(view);
+					} else {
+						_container.addChild(view);
+					}
 				}
 			}
+			
+			return _container;
 		}
 		
 		/**
-		 * close is called when the pop-up is closed.
+		 * Bubble the view's close event to the container.
 		 */
-		internal function close():void {
+		private function viewCloseHandler(event:CloseEvent):void {
+			if (container) container.dispatchEvent(event);
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function close():void {
 			if (closeCallback != null) closeCallback.apply(null, closeCallbackArgs);
 			closeCallback = null;
 			closeCallbackArgs = null;
+			_container = null;
+			_view = null;
 		}
 		
 		/**
@@ -196,5 +191,62 @@ package com.nbilyk.popup {
 			// Center the container within the parent.
 			container.move(Math.round((parentW - newW) / 2 + paddingLeft), Math.round((parentH - newH) / 2 + paddingTop));
 		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get modal():Boolean {
+			return _modal;
+		}
+
+		public function set modal(value:Boolean):void {
+			_modal = value;
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get escapeCloses():Boolean {
+			return _escapeCloses;
+		}
+
+		public function set escapeCloses(value:Boolean):void {
+			_escapeCloses = value;
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get clickOutsideCloses():Boolean {
+			return _clickOutsideCloses;
+		}
+
+		public function set clickOutsideCloses(value:Boolean):void {
+			_clickOutsideCloses = value;
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get autoLayout():Boolean {
+			return _autoLayout;
+		}
+
+		public function set autoLayout(value:Boolean):void {
+			_autoLayout = value;
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get layoutFunction():Function {
+			return _layoutFunction;
+		}
+
+		public function set layoutFunction(value:Function):void {
+			_layoutFunction = value;
+		}
+
+
 	}
 }
