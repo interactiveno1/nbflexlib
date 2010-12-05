@@ -18,7 +18,9 @@ package com.nbilyk.popup {
 		[ArrayElementType("com.nbilyk.popup.NPopUp")]
 		private static var popUps:Array = [];
 		
-		private var _popUpDescriptor:PopUpDescriptor;
+		private var _popUpDescriptor:IPopUpDescriptor;
+		
+		private var popUpComponent:UIComponent;
 		
 		/**
 		 * Returns the top-most NPopUp.
@@ -32,8 +34,8 @@ package com.nbilyk.popup {
 		/**
 		 * Creates a new pop-up using the given PopUpDescriptor.
 		 */
-		public static function createPopUp(popUpDescriptor:PopUpDescriptor):void {
-			if (!popUpDescriptor.stage || !popUpDescriptor.parent) return;
+		public static function createPopUp(popUpDescriptor:IPopUpDescriptor):void {
+			if (!stage || !popUpDescriptor.parent) return;
 			popUps.push(new NPopUp(popUpDescriptor));
 		}
 		
@@ -45,7 +47,7 @@ package com.nbilyk.popup {
 		 * @return Returns true if an open NPopUp with the given descriptor has been found
 		 * and has been successfully closed.
 		 */
-		public static function closePopUp(popUpDescriptor:PopUpDescriptor = null):Boolean {
+		public static function closePopUp(popUpDescriptor:IPopUpDescriptor = null):Boolean {
 			if (popUpDescriptor) {
 				var index:int = getPopUpIndex(popUpDescriptor);
 				if (index == -1) return false;
@@ -58,33 +60,31 @@ package com.nbilyk.popup {
 		}
 		
 		/**
-		 * Constructs a new PopUp, using the container, view, and other settings from PopUpDescriptor.
+		 * Constructs a new PopUp, using the container, view, and other settings from IPopUpDescriptor.
 		 * The NPopUp will then be added to the Flex PopUpManager, and listeners will be added to respond to resize, close, and keyboard events.
 		 */
-		public function NPopUp(popUpDescriptorVal:PopUpDescriptor) {
-			if (!popUpDescriptorVal.stage || !popUpDescriptorVal.parent) return;
+		public function NPopUp(popUpDescriptorVal:IPopUpDescriptor) {
+			if (!stage || !popUpDescriptorVal.parent) return;
 			_popUpDescriptor = popUpDescriptorVal;
 			
-			_popUpDescriptor.createContainer();
-			_popUpDescriptor.createView();
+			popUpComponent = _popUpDescriptor.createPopUp();
 			
-			PopUpManager.addPopUp(_popUpDescriptor.container, _popUpDescriptor.parent, _popUpDescriptor.modal);
+			PopUpManager.addPopUp(popUpComponent, _popUpDescriptor.parent, _popUpDescriptor.modal);
 			callLater(layout);
 			
-			_popUpDescriptor.container.addEventListener(CloseEvent.CLOSE, closeHandler);
-			if (_popUpDescriptor.view) _popUpDescriptor.view.addEventListener(CloseEvent.CLOSE, closeHandler);
+			popUpComponent.addEventListener(CloseEvent.CLOSE, closeHandler);
 			if (_popUpDescriptor.autoLayout) {
 				_popUpDescriptor.parent.addEventListener(ResizeEvent.RESIZE, resizeHandler);
 			}
 			if (_popUpDescriptor.modal && _popUpDescriptor.clickOutsideCloses) {
-				_popUpDescriptor.stage.addEventListener(MouseEvent.CLICK, stageClickHandler);
+				stage.addEventListener(MouseEvent.CLICK, stageClickHandler);
 			}
 			if (_popUpDescriptor.escapeCloses) {
-				_popUpDescriptor.stage.addEventListener(KeyboardEvent.KEY_DOWN, stageKeyDownHandler);	
+				stage.addEventListener(KeyboardEvent.KEY_DOWN, stageKeyDownHandler);	
 			}
 		}
 		
-		public function get popUpDescriptor():PopUpDescriptor {
+		public function get popUpDescriptor():IPopUpDescriptor {
 			return _popUpDescriptor;
 		}
 		
@@ -100,13 +100,20 @@ package com.nbilyk.popup {
 			FlexGlobals.topLevelApplication.callLater(method, args);
 		}
 		
+		/**
+		 * Just a convenience method to get the Stage.
+		 */
+		private static function get stage():Stage {
+			return FlexGlobals.topLevelApplication.stage;
+		}
+		
 		private function layout():void {
 			popUpDescriptor.layoutFunction(popUpDescriptor);
 		}
 		
 		private function stageClickHandler(event:MouseEvent):void {
-			if (!event.stageX || !event.stageY || !popUpDescriptor.container.initialized) return;
-			if (!popUpDescriptor.container.hitTestPoint(event.stageX, event.stageY)) {
+			if (!event.stageX || !event.stageY || !popUpComponent.initialized) return;
+			if (!popUpComponent.hitTestPoint(event.stageX, event.stageY)) {
 				// Close only when clicking outside of the image uploader.
 				close();
 			}
@@ -128,14 +135,11 @@ package com.nbilyk.popup {
 			if (index == -1) return false; // Not currently open.
 			popUps.splice(index, 1);
 			
-			popUpDescriptor.container.removeEventListener(CloseEvent.CLOSE, closeHandler);
-			if (popUpDescriptor.view) {
-				popUpDescriptor.view.removeEventListener(CloseEvent.CLOSE, closeHandler);
-			}
+			popUpComponent.removeEventListener(CloseEvent.CLOSE, closeHandler);
 			popUpDescriptor.parent.removeEventListener(ResizeEvent.RESIZE, resizeHandler);
-			popUpDescriptor.stage.removeEventListener(MouseEvent.CLICK, stageClickHandler);
-			popUpDescriptor.stage.removeEventListener(KeyboardEvent.KEY_DOWN, stageKeyDownHandler);
-			PopUpManager.removePopUp(popUpDescriptor.container);
+			stage.removeEventListener(MouseEvent.CLICK, stageClickHandler);
+			stage.removeEventListener(KeyboardEvent.KEY_DOWN, stageKeyDownHandler);
+			PopUpManager.removePopUp(popUpComponent);
 			popUpDescriptor.close();
 			return true;
 		}
@@ -144,7 +148,7 @@ package com.nbilyk.popup {
 		 * @return Returns the index of the NPopUp with the given popUpDesscriptor.
 		 * Returns -1 if none have been found.
 		 */
-		private static function getPopUpIndex(popUpDescriptor:PopUpDescriptor):int {
+		private static function getPopUpIndex(popUpDescriptor:IPopUpDescriptor):int {
 			var i:int = 0;
 			for each (var popUp:NPopUp in popUps) {
 				if (popUp.popUpDescriptor == popUpDescriptor) return i;
