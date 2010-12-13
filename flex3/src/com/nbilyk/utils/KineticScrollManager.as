@@ -26,7 +26,7 @@ package com.nbilyk.utils {
 		private static const HISTORY_LENGTH:uint = 5; // The amount of mouse move events to keep track of
 
 		private var _target:DisplayObject;
-		[ArrayElementType("Point")]
+		[ArrayElementType("flash.geom.Point")]
 		private var previousPoints:Array;
 		[ArrayElementType("int")]
 		private var previousTimes:Array;
@@ -112,7 +112,6 @@ package com.nbilyk.utils {
 
 		private function enterFrameHandler(event:Event):void {
 			velocity = new Point(velocity.x * dampening, velocity.y * dampening);
-			var cM:Matrix = target.transform.concatenatedMatrix;
 			var localVelocity:Point = transformPointToLocal(velocity);
 			if (Math.abs(localVelocity.x) < .1) localVelocity.x = 0;
 			if (Math.abs(localVelocity.y) < .1) localVelocity.y = 0;

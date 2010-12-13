@@ -1,14 +1,12 @@
 package com.nbilyk.formatters {
 
 	import com.nbilyk.utils.DateUtils;
-	
+
 	import mx.core.mx_internal;
 	import mx.formatters.DateBase;
 	import mx.formatters.DateFormatter;
 	import mx.formatters.Formatter;
 	import mx.formatters.StringFormatter;
-	import mx.managers.ISystemManager;
-	import mx.managers.SystemManager;
 
 	[ResourceBundle("nbflexlib")]
 	public class NDateTimeFormatter extends Formatter {

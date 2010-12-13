@@ -11,14 +11,14 @@ package com.nbilyk.sharedobject {
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 
-	[Event(name="saveSuccess", type="flash.event.Event")]
-	[Event(name="saveFail", type="flash.event.Event")]
+	[Event(name="saveSuccess", type="flash.events.Event")]
+	[Event(name="saveFail", type="flash.events.Event")]
 	public class AbstractPersistantData extends EventDispatcher {
 		public static const SAVE_SUCCESS:String = "saveSuccess";
 		public static const SAVE_FAIL:String = "saveFail";
 
 		private var _cookieName:String;
-		[ArrayElementType("SharedObject")]
+		[ArrayElementType("flash.net.SharedObject")]
 		private static var sharedObjects:Object = new Object();
 
 		public function AbstractPersistantData(cookieName:String, autoFetch:Boolean = false) {
