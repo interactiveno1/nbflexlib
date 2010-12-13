@@ -15,8 +15,7 @@ package com.nbilyk.popup {
 
 	public class NPopUp {
 		
-		[ArrayElementType("com.nbilyk.popup.NPopUp")]
-		private static var popUps:Array = [];
+		private static var popUps:Vector.<NPopUp> = new Vector.<NPopUp>();
 		
 		private var _popUpDescriptor:IPopUpDescriptor;
 		
@@ -36,6 +35,11 @@ package com.nbilyk.popup {
 		 */
 		public static function createPopUp(popUpDescriptor:IPopUpDescriptor):void {
 			if (!stage || !popUpDescriptor.parent) return;
+			if (!popUps.length) {
+				// First pop-up, add the stage click and keyboard listeners.
+				stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler, true);
+				stage.addEventListener(KeyboardEvent.KEY_DOWN, stageKeyDownHandler);
+			}
 			popUps.push(new NPopUp(popUpDescriptor));
 		}
 		
@@ -51,11 +55,64 @@ package com.nbilyk.popup {
 			if (popUpDescriptor) {
 				var index:int = getPopUpIndex(popUpDescriptor);
 				if (index == -1) return false;
-				return NPopUp(popUps[index]).close();
+				return popUps[index].close();
 			} else {
 				var n:uint = popUps.length;
 				if (!n) return false;
-				return NPopUp(popUps[n - 1]).close();
+				return popUps[n - 1].close();
+			}
+		}
+		
+		private static function removePopUp(nPopUp:NPopUp):Boolean {
+			var index:int = popUps.indexOf(nPopUp);
+			if (index == -1) return false; // Not currently open.
+			popUps.splice(index, 1);
+			
+			if (!popUps.length) {
+				// Last pop-up removed, remove the stage click and keyboard listeners.
+				stage.removeEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler, true);
+				stage.removeEventListener(KeyboardEvent.KEY_DOWN, stageKeyDownHandler);
+			}
+			return true;
+		}
+		
+		/**
+		 * Just a convenience method to get the Stage.
+		 */
+		private static function get stage():Stage {
+			return FlexGlobals.topLevelApplication.stage;
+		}
+		
+		/**
+		 * The mouse down / mouse up insanity instead of a click is to account for things like TitleWindow dispatching 
+		 * the close event on mouse down, which can mess up multiple pop ups because the close event will close the 
+		 * pop-up before the click event, causing the click event to possibly close the next pop-up as well.
+		 */
+		private static function mouseDownHandler(event:MouseEvent):void {
+			var currentPopUp:NPopUp = getCurrentPopUp();
+			if (!currentPopUp.popUpDescriptor.clickOutsideCloses || !currentPopUp.popUpDescriptor.modal) return;
+			if (!event.stageX || !event.stageY || !currentPopUp.popUpComponent.initialized) return;
+			if (!currentPopUp.popUpComponent.hitTestPoint(event.stageX, event.stageY)) {
+				stage.addEventListener(MouseEvent.MOUSE_UP, stageMouseUpHandler);
+			}
+		}
+		
+		private static function stageMouseUpHandler(event:MouseEvent):void {
+			stage.removeEventListener(MouseEvent.MOUSE_UP, stageMouseUpHandler);
+			var currentPopUp:NPopUp = getCurrentPopUp();
+			if (!event.stageX || !event.stageY || !currentPopUp.popUpComponent.initialized) return;
+			if (!currentPopUp.popUpComponent.hitTestPoint(event.stageX, event.stageY)) {
+				// Close only when clicking outside of the image uploader.
+				currentPopUp.close();
+			}
+		}
+		
+		private static function stageKeyDownHandler(event:KeyboardEvent):void {
+			var currentPopUp:NPopUp = getCurrentPopUp();
+			if (!currentPopUp.popUpDescriptor.escapeCloses) return;
+			if (event.keyCode == Keyboard.ESCAPE) {
+				currentPopUp.close();
+				event.stopImmediatePropagation();
 			}
 		}
 		
@@ -76,12 +133,6 @@ package com.nbilyk.popup {
 			if (_popUpDescriptor.autoLayout) {
 				_popUpDescriptor.parent.addEventListener(ResizeEvent.RESIZE, resizeHandler);
 			}
-			if (_popUpDescriptor.modal && _popUpDescriptor.clickOutsideCloses) {
-				stage.addEventListener(MouseEvent.CLICK, stageClickHandler);
-			}
-			if (_popUpDescriptor.escapeCloses) {
-				stage.addEventListener(KeyboardEvent.KEY_DOWN, stageKeyDownHandler);	
-			}
 		}
 		
 		public function get popUpDescriptor():IPopUpDescriptor {
@@ -100,45 +151,20 @@ package com.nbilyk.popup {
 			FlexGlobals.topLevelApplication.callLater(method, args);
 		}
 		
-		/**
-		 * Just a convenience method to get the Stage.
-		 */
-		private static function get stage():Stage {
-			return FlexGlobals.topLevelApplication.stage;
-		}
-		
 		private function layout():void {
 			popUpDescriptor.layoutFunction(popUpDescriptor);
 		}
 		
-		private function stageClickHandler(event:MouseEvent):void {
-			if (!event.stageX || !event.stageY || !popUpComponent.initialized) return;
-			if (!popUpComponent.hitTestPoint(event.stageX, event.stageY)) {
-				// Close only when clicking outside of the image uploader.
-				close();
-			}
-		}
-		
-		private function stageKeyDownHandler(event:KeyboardEvent):void {
-			if (event.keyCode == Keyboard.ESCAPE) {
-				closePopUp();
-				event.stopImmediatePropagation();
-			}
-		}
 		
 		/**
 		 * Closes the popUp.  
 		 * @return Returns true if the PopUp was open and has been closed.
 		 */
 		public function close():Boolean {
-			var index:int = popUps.indexOf(this);
-			if (index == -1) return false; // Not currently open.
-			popUps.splice(index, 1);
-			
+			var success:Boolean = removePopUp(this);
+			if (!success) return false;
 			popUpComponent.removeEventListener(CloseEvent.CLOSE, closeHandler);
 			popUpDescriptor.parent.removeEventListener(ResizeEvent.RESIZE, resizeHandler);
-			stage.removeEventListener(MouseEvent.CLICK, stageClickHandler);
-			stage.removeEventListener(KeyboardEvent.KEY_DOWN, stageKeyDownHandler);
 			PopUpManager.removePopUp(popUpComponent);
 			popUpDescriptor.close();
 			return true;
