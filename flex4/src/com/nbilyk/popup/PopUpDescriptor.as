@@ -160,7 +160,7 @@ package com.nbilyk.popup {
 		 * Bubble the view's close event to the container.
 		 */
 		private function viewCloseHandler(event:CloseEvent):void {
-			if (container) container.dispatchEvent(event);
+			if (container && !event.bubbles) container.dispatchEvent(event);
 		}
 		
 		/**
