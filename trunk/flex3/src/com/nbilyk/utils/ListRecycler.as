@@ -3,7 +3,6 @@ package com.nbilyk.utils {
 	
 	public class ListRecycler {
 		
-		[ArrayElementType("*")]
 		private var oldComponents:*;
 		
 		/**

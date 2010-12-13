@@ -4,8 +4,6 @@ package com.nbilyk.display {
 
 	public class BetterCanvas extends Canvas {
 		
-		private var internalSet:Boolean;
-		
 		public function BetterCanvas() {
 			super();
 			verticalScrollPolicy = ScrollPolicy.OFF;

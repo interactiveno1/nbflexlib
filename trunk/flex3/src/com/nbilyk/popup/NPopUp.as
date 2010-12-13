@@ -1,17 +1,13 @@
 package com.nbilyk.popup {
-	import flash.display.DisplayObject;
-	import flash.display.Stage;
+	import mx.core.ApplicationGlobals;
+	import mx.events.CloseEvent;
+	import mx.events.ResizeEvent;
+	import mx.managers.PopUpManager;
+
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.ui.Keyboard;
-	
-	import mx.containers.TitleWindow;
-	import mx.core.ApplicationGlobals;
-	import mx.core.UIComponent;
-	import mx.events.CloseEvent;
-	import mx.events.ResizeEvent;
-	import mx.managers.PopUpManager;
 
 	public class NPopUp {
 		

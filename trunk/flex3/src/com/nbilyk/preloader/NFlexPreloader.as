@@ -1,18 +1,14 @@
 package com.nbilyk.preloader {
-	import flash.display.MovieClip;
-	import flash.display.Sprite;
-	import flash.events.Event;
-	import flash.events.IOErrorEvent;
-	import flash.events.ProgressEvent;
-	import flash.geom.Rectangle;
-	import flash.text.TextField;
-	import flash.text.TextFormat;
-	import flash.utils.getTimer;
-	import flash.utils.setTimeout;
-	
 	import mx.events.FlexEvent;
 	import mx.events.RSLEvent;
 	import mx.preloaders.IPreloaderDisplay;
+
+	import flash.display.MovieClip;
+	import flash.display.Sprite;
+	import flash.events.Event;
+	import flash.events.ProgressEvent;
+	import flash.utils.getTimer;
+	import flash.utils.setTimeout;
 
 	/**
 	 * NFlexPreloader is a replacement to the flex DownloadProgressBar class.
@@ -78,8 +74,6 @@ package com.nbilyk.preloader {
 		 * This should be a value from 0 to 1
 		 */
 		protected var maxPercent:Number = 1;
-
-		private var _showProgressBar:Boolean = true;
 
 		private var _total:Number = 0;
 		private var _loaded:Number = 0;
@@ -424,11 +418,6 @@ package com.nbilyk.preloader {
 		 *  @param event The event object.
 		 */
 		protected function progressHandler(event:ProgressEvent):void {
-			var loaded:uint = event.bytesLoaded;
-			var total:uint = event.bytesTotal;
-
-			var elapsedTime:int = getTimer() - _startTime;
-
 			// Only show the Loading phase if it will appear for awhile.
 			if (_showingDisplay) {
 				if (!_startedLoading) {
@@ -533,12 +522,6 @@ package com.nbilyk.preloader {
 				dispatchEvent(new Event(Event.COMPLETE));
 			}
 		}
-		
-
-		private function loader_ioErrorHandler(event:IOErrorEvent):void {
-			// Swallow the error
-		}
-
 	}
 
 }
