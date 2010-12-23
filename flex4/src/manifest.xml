@@ -10,6 +10,7 @@
 	<component id="PopUpDescriptor" class="com.nbilyk.popup.PopUpDescriptor"/>
 	<component id="FlowLayout" class="com.nbilyk.layout.FlowLayout"/>
 	<component id="FunctionFactory" class="com.nbilyk.utils.FunctionFactory"/>
+	<component id="MethodDataGroup" class="com.nbilyk.controls.MethodDataGroup"/>
 	
 	<!-- Old -->
 	<component id="BetterFormItem" class="com.nbilyk.controls.BetterFormItem"/>

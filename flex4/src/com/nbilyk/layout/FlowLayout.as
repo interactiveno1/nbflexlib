@@ -3,6 +3,9 @@ package com.nbilyk.layout {
 	
 	import mx.core.ILayoutElement;
 	import mx.core.UIComponent;
+	import mx.managers.ILayoutManager;
+	import mx.managers.ILayoutManagerClient;
+	import mx.managers.LayoutManager;
 	
 	import spark.components.supportClasses.GroupBase;
 	import spark.layouts.supportClasses.LayoutBase;
@@ -42,6 +45,8 @@ package com.nbilyk.layout {
 			var rowHeight:Number = 0;
 			var rightBounds:Number = paddingLeft;
 			var bottomBounds:Number = paddingTop;
+			var largestItemWidth:Number = 0;
+			var largestItemHeight:Number = 0;
 			for (var i:int = 0; i < n; i++) {
 				var element:ILayoutElement = layoutTarget.getElementAt(i);
 				element.setLayoutBoundsSize(NaN, NaN);
@@ -59,6 +64,8 @@ package com.nbilyk.layout {
 				if (update) element.setLayoutBoundsPosition(x, y);
 				rightBounds = Math.max(x + elementWidth, rightBounds);
 				bottomBounds = Math.max(y + elementHeight, bottomBounds);
+				largestItemWidth = Math.max(largestItemWidth, elementWidth);
+				largestItemHeight = Math.max(largestItemHeight, elementHeight);
 				x += elementWidth + horizontalGap;
 			}
 			
@@ -68,13 +75,17 @@ package com.nbilyk.layout {
 				layoutTarget.setContentSize(w, h);
 				if (containerWidth != previousContainerWidth || h != previousMeasuredHeight) {
 					previousContainerWidth = containerWidth;
-					if (layoutTarget.parent is UIComponent) layoutTarget.callLater(UIComponent(layoutTarget.parent).invalidateSize);
+					if (layoutTarget.parent is ILayoutManagerClient) {
+						layoutTarget.callLater(measure);
+						layoutTarget.callLater(UIComponent(layoutTarget.parent).invalidateSize);
+						
+					}
 				}
 			} else {
 				layoutTarget.measuredWidth = w;
-				layoutTarget.measuredMinWidth = w;
+				layoutTarget.measuredMinWidth = Math.ceil(paddingLeft + largestItemWidth + paddingRight);
 				layoutTarget.measuredHeight = h;
-				layoutTarget.measuredMinHeight = h;
+				layoutTarget.measuredMinHeight = 0;
 				previousMeasuredHeight = h;
 			}
 		}
