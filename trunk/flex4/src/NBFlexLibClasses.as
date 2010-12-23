@@ -5,6 +5,7 @@ package {
 	import com.nbilyk.controls.CSSText;
 	import com.nbilyk.controls.GradientCanvas;
 	import com.nbilyk.controls.MessageNotifier;
+	import com.nbilyk.controls.MethodDataGroup;
 	import com.nbilyk.controls.RichHtmlText;
 	import com.nbilyk.events.LoaderCreationEvent;
 	import com.nbilyk.events.QueuedUrlLoaderEvent;
@@ -65,6 +66,7 @@ package {
 		CSSText;
 		GradientCanvas;
 		MessageNotifier;
+		MethodDataGroup;
 		RichHtmlText;
 		LoaderCreationEvent;
 		QueuedUrlLoaderEvent;
