@@ -61,5 +61,9 @@ package com.nbilyk.history {
 			}
 			return null;
 		}
+		
+		public function reset():void {
+			history = [];
+		}
 	}
 }
