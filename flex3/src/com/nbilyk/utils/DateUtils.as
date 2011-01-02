@@ -19,7 +19,7 @@ package com.nbilyk.utils {
 		}
 
 		public static function isSameDay(dateA:Date, dateB:Date):Boolean {
-			if (dateA.getFullYear() == dateB.getFullYear() && dateA.getMonth() == dateB.getMonth() && dateA.getDate() == dateB.getDate()) {
+			if (dateA.fullYearUTC == dateB.fullYearUTC && dateA.monthUTC == dateB.monthUTC && dateA.dateUTC == dateB.dateUTC) {
 				return true;
 			}
 			return false;
