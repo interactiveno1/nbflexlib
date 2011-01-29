@@ -40,18 +40,18 @@ package com.nbilyk.history {
 		 *  An Array of objects that will save and load state information.
 		 *  Each object must implement the IPrettyHistoryManagerClient interface.
 		 */
-		public var registeredObjects:Array = []; /* Type IPrettyHistoryManagerClient */
+		public var registeredObjects:Vector.<IPrettyHistoryManagerClient> = new Vector.<IPrettyHistoryManagerClient>();
 		
 		/**
 		 * A Dictionary of clients that are pending loadState calls.  
 		 */
-		private var clientsPendingLoad:Dictionary = new Dictionary(true);
+		private var clientsPendingLoad:Dictionary = new Dictionary();
 		
 		/**
 		 * A Dictionary of clients that are pending saveState calls.  
 		 * This determines which url sections need to be updated. 
 		 */
-		private var clientsPendingSave:Dictionary = new Dictionary(true);
+		private var clientsPendingSave:Dictionary = new Dictionary();
 		
 		public static function get instance():PrettyHistoryManager {
 			if (!_instance) _instance = new PrettyHistoryManager();
@@ -115,7 +115,9 @@ package com.nbilyk.history {
 		public function register(client:IPrettyHistoryManagerClient):void {
 			unregister(client);
 			registeredObjects.push(client);
-			validateClientState(client);
+			
+			clientsPendingLoad[client] = true;
+			invalidateState();
 		}
 		
 		/**
@@ -127,13 +129,16 @@ package com.nbilyk.history {
 		
 		/**
 		 * Unregisters an object with the PrettyHistoryManager.
-		 * @param obj IPrettyHistoryManagerClient to unregister.
+		 * @param client IPrettyHistoryManagerClient to unregister.
+		 * @param unregisterChildren If true, all clients at a client depth deeper than the given client will be also unregistered. 
 		 * @return Returns <code>true</code> if the client was found. 
 		 */
 		public function unregister(client:IPrettyHistoryManagerClient, unregisterChildren:Boolean = false):Boolean {
 			var index:int = registeredObjects.indexOf(client);
 			if (index == -1) return false;
 			registeredObjects.splice(index, 1);
+			delete clientsPendingLoad[client];
+			delete clientsPendingSave[client];
 			
 			var clientDepth:int = client.getClientDepth();
 			if (unregisterChildren) {
@@ -142,6 +147,8 @@ package com.nbilyk.history {
 					var registeredObject:IPrettyHistoryManagerClient = registeredObjects[i];
 					if (registeredObject.getClientDepth() >= clientDepth) {
 						registeredObjects.splice(i, 1);
+						delete clientsPendingLoad[registeredObject];
+						delete clientsPendingSave[registeredObject];
 						i--; n--;
 					}
 				}
@@ -168,6 +175,8 @@ package com.nbilyk.history {
 				var registeredObject:IPrettyHistoryManagerClient = registeredObjects[i];
 				if (registeredObject is DisplayObject && owns(root, DisplayObject(registeredObject))) {
 					registeredObjects.splice(i, 1);
+					delete clientsPendingLoad[registeredObject];
+					delete clientsPendingSave[registeredObject];
 					i--; n--;
 				}
 			}
@@ -384,47 +393,36 @@ package com.nbilyk.history {
 		protected function validateState():void {
 			stateIsValidFlag = true;
 			isLoadingState = true;
+			var fragmentSplit:Array = action.split(separator);
+			
 			for each (var client:IPrettyHistoryManagerClient in registeredObjects) {
 				if (!clientsPendingLoad[client]) continue;
-				var success:Boolean = validateClientState(client);
-				if (!success) {
+				var clientDepth:uint = client.getClientDepth();
+				var clientParamCount:uint = client.getParamCount();
+				var newArgs:Array = fragmentSplit.slice(clientDepth, clientDepth + clientParamCount);
+				newArgs.length = clientParamCount;
+				var previousArgs:Array = client.saveState();
+				previousArgs.length = clientParamCount;
+				var defaultArgs:Array = client.getDefaultState();
+				if (defaultArgs != null) {
+					delete clientsPendingLoad[client];
+					
+					defaultArgs.length = clientParamCount;
+					// Check if the parameters to the client have changed and apply default arguments.
+					var hasChanged:Boolean = false;
+					for (var i:uint = 0; i < clientParamCount; i++) {
+						if (!newArgs[i]) newArgs[i] = defaultArgs[i];
+						if (newArgs[i] != previousArgs[i]) {
+							hasChanged = true;
+						}
+					}
+					if (hasChanged) client.loadState(newArgs);
+				} else {
 					// Not all clients were ready to load. 
 					stateIsValidFlag = false;
 				}
 			}
 			isLoadingState = false;
-		}
-		
-		/**
-		 * Given a pretty history manager client, the url fragment and that client's default state
-		 * will both be analyzed to determine which arguments to pass to loadState.
-		 * 
-		 * @return success - This will be true if loadState was called. This will always be false 
-		 * if the client's getDefaultState returns null. 
-		 */
-		protected function validateClientState(client:IPrettyHistoryManagerClient):Boolean {
-			var fragmentSplit:Array = action.split(separator);
-			var clientDepth:uint = client.getClientDepth();
-			var clientParamCount:uint = client.getParamCount();
-			var newArgs:Array = fragmentSplit.slice(clientDepth, clientDepth + clientParamCount);
-			newArgs.length = clientParamCount;
-			var previousArgs:Array = client.saveState();
-			previousArgs.length = clientParamCount;
-			var defaultArgs:Array = client.getDefaultState();
-			if (defaultArgs == null) return false;
-			delete clientsPendingLoad[client];
-			
-			defaultArgs.length = clientParamCount;
-			// Check if the parameters to the client have changed and apply default arguments.
-			var hasChanged:Boolean = false;
-			for (var i:uint = 0; i < clientParamCount; i++) {
-				if (!newArgs[i]) newArgs[i] = defaultArgs[i];
-				if (newArgs[i] != previousArgs[i]) {
-					hasChanged = true;
-				}
-			}
-			if (hasChanged) client.loadState(newArgs);
-			return true;
 		}
 		
 		/**
