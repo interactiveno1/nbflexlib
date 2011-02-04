@@ -11,8 +11,6 @@ package {
 	import com.nbilyk.events.QueuedUrlLoaderEvent;
 	import com.nbilyk.factory.CallbackFactory;
 	import com.nbilyk.file.MultipartUrlLoader;
-	import com.nbilyk.flexvideoplayer.FlexVideoPlayer;
-	import com.nbilyk.flexvideoplayer.VideoControlBar;
 	import com.nbilyk.formatters.FileSizeFormatter;
 	import com.nbilyk.formatters.NDateTimeFormatter;
 	import com.nbilyk.history.IPrettyHistoryManagerClient;
@@ -31,6 +29,7 @@ package {
 	import com.nbilyk.preloader.NPreloaderController;
 	import com.nbilyk.sharedobject.AbstractPersistantData;
 	import com.nbilyk.skins.IconButtonSkin;
+	import com.nbilyk.skins.NRichTextEditorSkin;
 	import com.nbilyk.styles.StyleClient;
 	import com.nbilyk.utils.ArrayUtils;
 	import com.nbilyk.utils.Bezier;
@@ -53,7 +52,7 @@ package {
 	import com.nbilyk.utils.QueuedEvent;
 	import com.nbilyk.utils.StringUtils;
 	import com.nbilyk.utils.UniqueStringFilter;
-	import com.nbilyk.utils.XMLUtils;
+	import com.nbilyk.xml.XMLUtils;
 	import com.nbilyk.validators.ConfirmationValidator;
 	import com.nbilyk.validators.URLValidator;
 	
@@ -72,8 +71,6 @@ package {
 		QueuedUrlLoaderEvent;
 		CallbackFactory;
 		MultipartUrlLoader;
-		FlexVideoPlayer;
-		VideoControlBar;
 		FileSizeFormatter;
 		NDateTimeFormatter;
 		IPrettyHistoryManagerClient;
@@ -92,6 +89,7 @@ package {
 		NPreloaderController;
 		AbstractPersistantData;
 		IconButtonSkin;
+		NRichTextEditorSkin;
 		StyleClient;
 		ArrayUtils;
 		Bezier;

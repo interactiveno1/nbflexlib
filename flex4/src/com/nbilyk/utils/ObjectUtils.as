@@ -14,9 +14,8 @@ package com.nbilyk.utils {
 	 */
 	public class ObjectUtils {
 		
-		[ArrayElementType("String")]
-		public static const PRIMITIVE_TYPES:Array = ["String", "Number", "uint", "int", "Boolean", "Date", "Array"];
-		public static const IGNORE_TYPES:Array = ["*", "Function"];
+		public static const PRIMITIVE_TYPES:Vector.<String> = new <String>["String", "Number", "uint", "int", "Boolean", "Date", "Array"];
+		public static const IGNORE_TYPES:Vector.<String> = new <String>["*", "Function"];
 		
 		/**
 		 * Clones either an object or an array.  The same as Flex's ObjectUtil.clone method.
@@ -39,10 +38,10 @@ package com.nbilyk.utils {
 		 */
 		public static function mergeObjects(objectA:*, objectB:*, transferNulls:Boolean = false, useCache:Boolean = true, recursive:Boolean = true, ignoreTransient:Boolean = false):void {
 			if (getQualifiedClassName(objectA) != getQualifiedClassName(objectB)) throw new ArgumentError("objectA and objectB are not the same type.");
-			internalMergeObjects(objectA, objectB, transferNulls, useCache, new Dictionary(true), recursive, ignoreTransient);
+			internalMergeObjects(objectA, objectB, transferNulls, useCache, recursive, ignoreTransient, new Dictionary(true));
 		}
 		
-		private static function internalMergeObjects(objectA:*, objectB:*, transferNulls:Boolean, useCache:Boolean, ref:Dictionary, recursive:Boolean, ignoreTransient:Boolean):void {
+		private static function internalMergeObjects(objectA:*, objectB:*, transferNulls:Boolean, useCache:Boolean, recursive:Boolean, ignoreTransient:Boolean, ref:Dictionary):void {
 			if (getQualifiedClassName(objectA) != getQualifiedClassName(objectB)) return; // Do not try to merge objects of different types.
 			ref[objectA] = true;
 			var typeXml:XML;
@@ -64,7 +63,7 @@ package com.nbilyk.utils {
 						// Not a primitive type, recurse into the sub-object.
 						if (propertyValueA != null && propertyValueB != null) {
 							if (!ref[propertyValueA]) {
-								internalMergeObjects(propertyValueA, propertyValueB, transferNulls, useCache, ref, recursive, ignoreTransient);
+								internalMergeObjects(propertyValueA, propertyValueB, transferNulls, useCache, recursive, ignoreTransient, ref);
 							}
 						} else {
 							objectA[property.@name] = propertyValueB;
@@ -127,13 +126,13 @@ package com.nbilyk.utils {
 			for (var all:String in nestedObject) {
 				if (!all || nestedObject[all] == null) continue;
 				switch (typeof(nestedObject[all])) {
-					case ("object") :
+					case "object" :
 						var comparison:Boolean = recursiveCompare(nestedObject[all], nestedNames.concat(all), objectB, recursionDict);
 						if (!comparison) return false;
 						break;
-					case ("boolean") :
-					case ("string") :
-					case ("number") :
+					case "boolean" :
+					case "string" :
+					case "number" :
 						var obj:Object = objectB;
 						for each (var prop:String in nestedNames) {
 							obj = obj[prop];

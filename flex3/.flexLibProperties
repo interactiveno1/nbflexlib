@@ -2,10 +2,8 @@
 <flexLibProperties includeAllClasses="false" version="3">
   <includeClasses>
     <classEntry path="NBFlexLibClasses"/>
-    <classEntry path="com.nbilyk.utils.TextFlowUtils"/>
   </includeClasses>
   <includeResources>
-    <resourceEntry destPath="manifest.xml" sourcePath="manifest.xml"/>
     <resourceEntry destPath="defaults.css" sourcePath="defaults.css"/>
   </includeResources>
   <namespaceManifests>

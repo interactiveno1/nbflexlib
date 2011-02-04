@@ -23,6 +23,8 @@ package com.nbilyk.logging {
 		protected var clearButton:Button;
 		protected var refreshButton:Button;
 		
+		private var _loggingEnabled:Boolean = true;
+		
 		// Validation properties
 		private var labelsAreValidFlag:Boolean;
 		private var logIsValid:Boolean = true;
@@ -31,7 +33,7 @@ package com.nbilyk.logging {
 			super();
 			
 			arrayTarget = new ArrayTarget();
-			//Log.addTarget(arrayTarget);
+			Log.addTarget(arrayTarget);
 			
 			addEventListener(Event.ADDED_TO_STAGE, addedToStageHandler, false, 0, true);
 			addEventListener(Event.REMOVED_FROM_STAGE, removedFromStageHandler, false, 0, true);
@@ -49,6 +51,7 @@ package com.nbilyk.logging {
 		}
 
 		protected function mainKeyDownHandler(event:KeyboardEvent):void {
+			if (!loggingEnabled) return;
 			if (event.ctrlKey && event.keyCode == Keyboard.F12) {
 				// Ctrl + "="
 				visible = !visible;
@@ -102,6 +105,7 @@ package com.nbilyk.logging {
 			labelsAreValidFlag = false;
 			invalidateProperties();
 		}
+		
 		protected function validateLabels():void {
 			labelsAreValidFlag = true;
 			closeButton.label = resourceManager.getString("nbflexlib", "logger.close");
@@ -113,6 +117,7 @@ package com.nbilyk.logging {
 			logIsValid = false;
 			invalidateProperties();
 		}
+		
 		protected function validateLog():void {
 			logIsValid = true;
 			debugText.text = arrayTarget.text;
@@ -147,6 +152,7 @@ package com.nbilyk.logging {
 		public function get level():int {
 			return arrayTarget.level;
 		}
+		
 		public function set level(value:int):void {
 			arrayTarget.level = value;
 		}
@@ -157,6 +163,21 @@ package com.nbilyk.logging {
 		
 		public function set targetFilters(value:Array):void {
 			arrayTarget.filters = value;
+		}
+		
+		/**
+		 * If set to false, the log target will be removed.
+		 * @default true
+		 */
+		public function get loggingEnabled():Boolean {
+			return _loggingEnabled;
+		}
+		
+		public function set loggingEnabled(value:Boolean):void {
+			if (value == _loggingEnabled) return;
+			_loggingEnabled = value;
+			if (value) Log.addTarget(arrayTarget);
+			else Log.removeTarget(arrayTarget);
 		}
 		
 		//----------------------------------

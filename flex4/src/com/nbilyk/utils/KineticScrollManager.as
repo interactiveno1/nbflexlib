@@ -124,7 +124,6 @@ package com.nbilyk.utils {
 
 		protected function enterFrameHandler(event:Event):void {
 			velocity = new Point(velocity.x * dampening, velocity.y * dampening);
-			var cM:Matrix = target.transform.concatenatedMatrix;
 			var localVelocity:Point = transformPointToLocal(velocity);
 			if (Math.abs(localVelocity.x) < .1) localVelocity.x = 0;
 			if (Math.abs(localVelocity.y) < .1) localVelocity.y = 0;
@@ -138,15 +137,24 @@ package com.nbilyk.utils {
 			}
 		}
 		
+		/**
+		 * Starts the enter frame handler
+		 */
 		protected function start():void {
 			target.addEventListener(Event.ENTER_FRAME, enterFrameHandler, false, 0, true);
 		}
 
+		/**
+		 * Starts the enter frame handler
+		 */
 		public function stop():void {
 			target.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
 			velocity = new Point();
 		}
 
+		/**
+		 * Sets the velocity of the scrolling.
+		 */
 		public function setVelocity(value:Point):void {
 			if (!value) value = new Point();
 			if (!target.stage) return;
@@ -170,6 +178,9 @@ package com.nbilyk.utils {
 			}
 		}
 
+		/**
+		 * If enabled is false, scrolling will stop and be disabled.
+		 */
 		public function get enabled():Boolean {
 			return _enabled;
 		}

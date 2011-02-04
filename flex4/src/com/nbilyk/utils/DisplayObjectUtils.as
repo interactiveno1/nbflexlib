@@ -31,17 +31,5 @@ package com.nbilyk.utils {
 			container.addChild(bmp);
 			return container;
 		}
-		
-		/* public static function fitToDimensions(target:DisplayObject, dimensions:Rectangle):void {
-			var targetBounds:Rectangle = target.getBounds(target);
-			target.scaleX = dimensions.width / targetBounds.width;
-			target.scaleY = target.scaleX;
-			if (targetBounds.height > dimensions.height) {
-				target.scaleY = dimensions.height / targetBounds.height;
-				target.scaleX = target.scaleY;
-			}
-			target.x = (dimensions.width - targetBounds.width * target.scaleX) / 2;
-			target.y = (dimensions.height - targetBounds.height * target.scaleY) / 2;
-		} */
 	}
 }

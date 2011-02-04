@@ -1,13 +1,10 @@
 package com.nbilyk.controls {
-	import com.nbilyk.utils.ListRecycler;
-	
 	import flash.utils.Dictionary;
 	
-	import mx.collections.ICollectionView;
+	import mx.collections.ArrayList;
 	import mx.collections.IList;
 	import mx.collections.ListCollectionView;
 	import mx.collections.Sort;
-	import mx.core.IFactory;
 	import mx.core.IVisualElement;
 	import mx.events.CollectionEvent;
 	
@@ -18,9 +15,9 @@ package com.nbilyk.controls {
 
 		protected var resetList:Boolean;
 		protected var currentComponents:Vector.<IVisualElement>;
-		protected var collectionView:ICollectionView;
+		protected var collectionView:ListCollectionView;
 
-		private var _dataProvider:IList;
+		private var _dataProvider:*;
 		private var _filterFunction:Function;
 		private var _sort:Sort;
 		private var _itemCreationFunction:Function;
@@ -38,25 +35,45 @@ package com.nbilyk.controls {
 		// Getters / Setters
 		//-------------------------------------------
 
-		public function get dataProvider():IList {
+		public function get dataProvider():* {
 			return _dataProvider;
 		}
 
-		public function set dataProvider(collection:IList):void {
+		public function set dataProvider(value:*):void {
 			if (collectionView) {
 				collectionView.removeEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeHandler);
 			}
-			_dataProvider = collection;
-			if (_dataProvider) {
-				collectionView = new ListCollectionView(_dataProvider);
-				if (_filterFunction != null)
-					collectionView.filterFunction = _filterFunction;
-				if (_sort != null)
-					collectionView.sort = _sort;
-				collectionView.refresh();
-				collectionView.addEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeHandler, false, 0, true);
+			_dataProvider = value;
+			
+			var collection:IList;
+			
+			if (value is IList) {
+				collection = value;
+			} else if (value is Array) {
+				collection = new ArrayList(value);
+			} else {
+				collection = new ArrayList();
+				for each (var item:* in value) {
+					collection.addItem(item);
+				}
 			}
+			
+			collectionView = new ListCollectionView(collection);
+			if (_filterFunction != null)
+				collectionView.filterFunction = _filterFunction;
+			if (_sort != null)
+				collectionView.sort = _sort;
+			collectionView.refresh();
+			collectionView.addEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeHandler, false, 0, true);
+			
 			invalidateList();
+		}
+		
+		/**
+		 * Returns the sorted and filtered collection wrapper to the dataProvider.
+		 */
+		public function getCollectionView():ListCollectionView {
+			return collectionView;
 		}
 
 		private function collectionChangeHandler(event:CollectionEvent):void {
@@ -140,12 +157,13 @@ package com.nbilyk.controls {
 					var component:IVisualElement = componentDict[item] as IVisualElement;
 					if (component == null) {
 						component = itemCreationFunction(item);
+						if (!component) continue; 
 						addElement(component);
 					} else {
 						setElementIndex(component, i);
 					}
 					newComponentDict[item] = component;
-					currentComponents[i] = component;
+					currentComponents.push(component);
 					i++;
 				}
 			}
