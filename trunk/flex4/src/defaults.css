@@ -87,3 +87,6 @@ mx|Button.vpBigPlayButton {
 	overSkin: Embed(source="videoPlayerSkin.swf", symbol="bigPlayButton_over");
 	downSkin: Embed(source="videoPlayerSkin.swf", symbol="bigPlayButton_over");
 }
+s|TextArea.richTextEditor {
+	skin-class: ClassReference("com.nbilyk.skins.NRichTextEditorSkin");
+}

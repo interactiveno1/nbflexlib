@@ -78,7 +78,7 @@ package com.nbilyk.popup {
 		 * The default container is a TitleWindow. This object will set the properties on the TitleWindow if this default is used.
 		 */
 		public var defaultTitleWindowProperties:Object = {};
-
+		
 		private var _container:UIComponent;
 		private var _view:UIComponent;
 		private var _parent:UIComponent;
@@ -87,6 +87,7 @@ package com.nbilyk.popup {
 		private var _clickOutsideCloses:Boolean = true;
 		private var _autoLayout:Boolean = true;
 		private var _layoutFunction:Function;
+		private var _layoutFunctionArgs:Array = [];
 
 		public function PopUpDescriptor() {
 			parent = UIComponent(FlexGlobals.topLevelApplication);
@@ -245,6 +246,20 @@ package com.nbilyk.popup {
 
 		public function set layoutFunction(value:Function):void {
 			_layoutFunction = value;
+		}
+
+		/**
+		 * @inheritDocs
+		 */
+		public function get layoutFunctionArgs():Array {
+			return _layoutFunctionArgs;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set layoutFunctionArgs(value:Array):void {
+			_layoutFunctionArgs = value;
 		}
 
 

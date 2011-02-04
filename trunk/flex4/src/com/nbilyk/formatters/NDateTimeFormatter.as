@@ -42,7 +42,7 @@ package com.nbilyk.formatters {
 
 		public function set dateFormat(value:String):void {
 			dateFormatOverride = value;
-			_dateFormat = value != null ? value : resourceManager.getString("nbflexlib", "dateFormat");
+			_dateFormat = value != null ? value : resourceManager.getString('nbflexlib', "dateFormat");
 			dateStringFormatter = new StringFormatter(_dateFormat, VALID_PATTERN_CHARS, DateBase.mx_internal::extractTokenDate);
 		}
 		

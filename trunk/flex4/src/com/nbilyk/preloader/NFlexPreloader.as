@@ -546,6 +546,7 @@ package com.nbilyk.preloader {
 import com.nbilyk.preloader.NFlexPreloader;
 
 import flash.display.Sprite;
+import flash.events.Event;
 import flash.system.Capabilities;
 import flash.text.TextField;
 import flash.text.TextFieldAutoSize;
@@ -555,7 +556,6 @@ import flash.text.TextFormat;
  * Area to display error messages to help debug startup problems.
  */
 class ErrorField extends Sprite {
-	private var downloadProgressBar:NFlexPreloader;
 	private const MIN_WIDTH_INCHES:int = 2; // min width of error message in inches
 	private const MAX_WIDTH_INCHES:int = 6; // max width of error message in inches
 	private const TEXT_MARGIN_PX:int = 10;
@@ -615,9 +615,7 @@ class ErrorField extends Sprite {
 
 		// center field horizontally
 		textField.x = (stageWidth - textField.width) / 2;
-
-		downloadProgressBar.parent.addChild(this);
 		addChild(textField);
-
 	}
+	
 }

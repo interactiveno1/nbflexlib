@@ -41,10 +41,24 @@ package com.nbilyk.popup {
 		
 		/**
 		 * The method that positions and sizes the container within its parent.
-		 * It should have the signature:
+		 * Given no layoutFunctionArgs, it should have the signature:
 		 * 	layoutFunction(popUpDescriptor:PopUpDescriptor):void
 		 */
 		function get layoutFunction():Function;
+		
+		/**
+		 * An array of arguments to pass to the supplied layout function. 
+		 * These arguments will be after the mandatory first argument of the IPopUpDescriptor itself.
+		 * 
+		 * e.g.
+		 * <code>
+		 *	var popUpDescriptor:IPopUpDescriptor = new PopUpDescriptor();
+		 *	popUpDescriptor.layoutFunction = function(descriptor:IPopUpDescriptor, x:Number, y:Number):void {
+		 *		
+		 *	}
+		 * </code>
+		 */
+		function get layoutFunctionArgs():Array;
 		
 	}
 }

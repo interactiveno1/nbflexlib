@@ -11,6 +11,7 @@
 	<component id="FlowLayout" class="com.nbilyk.layout.FlowLayout"/>
 	<component id="FunctionFactory" class="com.nbilyk.utils.FunctionFactory"/>
 	<component id="MethodDataGroup" class="com.nbilyk.controls.MethodDataGroup"/>
+	<component id="NDateTimeFormatter" class="com.nbilyk.formatters.NDateTimeFormatter"/>
 	
 	<!-- Old -->
 	<component id="BetterFormItem" class="com.nbilyk.controls.BetterFormItem"/>

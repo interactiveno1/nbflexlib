@@ -31,6 +31,13 @@ package com.nbilyk.popup {
 		}
 		
 		/**
+		 * Returns a copy of the Vector of current NPopUp objects.
+		 */
+		public static function getAllPopUps():Vector.<NPopUp> {
+			return popUps.slice();
+		}
+		
+		/**
 		 * Creates a new pop-up using the given PopUpDescriptor.
 		 */
 		public static function createPopUp(popUpDescriptor:IPopUpDescriptor):void {
@@ -42,7 +49,6 @@ package com.nbilyk.popup {
 			}
 			popUps.push(new NPopUp(popUpDescriptor));
 		}
-		
 		
 		/**
 		 * Closes the pop-up with the given popUpDescriptor.
@@ -62,6 +68,17 @@ package com.nbilyk.popup {
 				return popUps[n - 1].close();
 			}
 		}
+		
+		/**
+		 * Closes all currently open pop-ups.
+		 */
+		public static function closeAllPopUps():void {
+			var popUpsClone:Vector.<NPopUp> = popUps.slice();
+			for each (var popUp:NPopUp in popUpsClone) {
+				popUp.close();
+			}
+		}
+
 		
 		private static function removePopUp(nPopUp:NPopUp):Boolean {
 			var index:int = popUps.indexOf(nPopUp);
@@ -152,7 +169,7 @@ package com.nbilyk.popup {
 		}
 		
 		private function layout():void {
-			popUpDescriptor.layoutFunction(popUpDescriptor);
+			popUpDescriptor.layoutFunction.apply(null, [popUpDescriptor].concat(popUpDescriptor.layoutFunctionArgs));
 		}
 		
 		

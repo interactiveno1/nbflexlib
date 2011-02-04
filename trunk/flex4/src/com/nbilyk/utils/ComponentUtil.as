@@ -54,6 +54,7 @@ package com.nbilyk.utils {
 		/**
 		 * Call this method on a Container's preinitialize method to postpone creation of children until all [Required] properties have been set.
 		 */
+		[Deprecated]
 		public static function createOnRequired(container:Container):void {
 			if (container.initialized) throw new ArgumentError("This container is already initialized.");
 			var names:Array = getMissingPropertyNames(container);
