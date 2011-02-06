@@ -52,9 +52,10 @@ package {
 	import com.nbilyk.utils.QueuedEvent;
 	import com.nbilyk.utils.StringUtils;
 	import com.nbilyk.utils.UniqueStringFilter;
-	import com.nbilyk.xml.XMLUtils;
 	import com.nbilyk.validators.ConfirmationValidator;
 	import com.nbilyk.validators.URLValidator;
+	import com.nbilyk.xml.XMLUtils;
+	import com.nbilyk.xml.XMLUtilsSparkManifest_4_1;
 	
 	import de.polygonal.core.ObjectPool;
 
@@ -112,9 +113,10 @@ package {
 		QueuedEvent;
 		StringUtils;
 		UniqueStringFilter;
-		XMLUtils;
 		ConfirmationValidator;
 		URLValidator;
 		ObjectPool;
+		XMLUtils;
+		XMLUtilsSparkManifest_4_1;
 	}
 }

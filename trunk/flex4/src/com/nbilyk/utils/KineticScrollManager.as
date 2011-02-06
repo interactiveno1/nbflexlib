@@ -2,8 +2,11 @@
  * @author Nicholas Bilyk - April 2009
  */
 package com.nbilyk.utils {
+	import com.nbilyk.events.KineticScrollManagerEvent;
+	
 	import flash.display.DisplayObject;
 	import flash.events.Event;
+	import flash.events.EventDispatcher;
 	import flash.events.MouseEvent;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
@@ -24,15 +27,18 @@ package com.nbilyk.utils {
 	 * private var ksm:KineticScrollManager;
 	 * ksm = new KineticScrollManager(component);
 	 */
-	public class KineticScrollManager {
+	[Event(name="tossStart", type="com.nbilyk.events.KineticScrollManagerEvent")]
+	[Event(name="tossEnd", type="com.nbilyk.events.KineticScrollManagerEvent")]
+	public class KineticScrollManager extends EventDispatcher {
+		
 		private static const HISTORY_LENGTH:uint = 5; // The amount of mouse move events to keep track of
 
+		protected var velocity:Point = new Point();
+		
 		private var _target:DisplayObject;
-		[ArrayElementType("Point")]
-		private var previousPoints:Array;
-		[ArrayElementType("int")]
-		private var previousTimes:Array;
-		private var velocity:Point = new Point();
+		
+		private var previousPoints:Vector.<Point>;
+		private var previousTimes:Vector.<int>;
 		private var _enabled:Boolean = true;
 		
 		/**
@@ -72,8 +78,8 @@ package com.nbilyk.utils {
 			if (hasMouseEventListeners(DisplayObject(event.target))) return;
 			
 			stop();
-			previousPoints = [new Point(target.stage.mouseX, target.stage.mouseY)];
-			previousTimes = [getTimer()];
+			previousPoints = new <Point>[new Point(target.stage.mouseX, target.stage.mouseY)];
+			previousTimes = new <int>[getTimer()];
 			target.stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler, false, 0, true);
 			target.stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler, false, 0, true);
 		}
@@ -114,8 +120,8 @@ package com.nbilyk.utils {
 
 			var currPoint:Point = new Point(target.stage.mouseX, target.stage.mouseY);
 			var currTime:int = getTimer();
-			var firstPoint:Point = Point(previousPoints[0]);
-			var firstTime:int = int(previousTimes[0]);
+			var firstPoint:Point = previousPoints[0];
+			var firstTime:int = previousTimes[0];
 			var diff:Point = currPoint.subtract(firstPoint);
 			var time:Number = (currTime - firstTime) / (1000 / target.stage.frameRate);
 			velocity = new Point(diff.x / time, diff.y / time);
@@ -142,6 +148,7 @@ package com.nbilyk.utils {
 		 */
 		protected function start():void {
 			target.addEventListener(Event.ENTER_FRAME, enterFrameHandler, false, 0, true);
+			dispatchEvent(new KineticScrollManagerEvent(KineticScrollManagerEvent.TOSS_START, velocity));
 		}
 
 		/**
@@ -150,6 +157,7 @@ package com.nbilyk.utils {
 		public function stop():void {
 			target.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
 			velocity = new Point();
+			dispatchEvent(new KineticScrollManagerEvent(KineticScrollManagerEvent.TOSS_END, velocity));
 		}
 
 		/**
