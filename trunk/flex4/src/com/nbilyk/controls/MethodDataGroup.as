@@ -17,7 +17,7 @@ package com.nbilyk.controls {
 		protected var currentComponents:Vector.<IVisualElement>;
 		protected var collectionView:ListCollectionView;
 
-		private var _dataProvider:*;
+		private var _dataProvider:IList;
 		private var _filterFunction:Function;
 		private var _sort:Sort;
 		private var _itemCreationFunction:Function;
@@ -35,38 +35,36 @@ package com.nbilyk.controls {
 		// Getters / Setters
 		//-------------------------------------------
 
-		public function get dataProvider():* {
+		public function get dataProvider():IList {
 			return _dataProvider;
 		}
 
-		public function set dataProvider(value:*):void {
+		public function set dataProvider(value:IList):void {
 			if (collectionView) {
 				collectionView.removeEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeHandler);
 			}
 			_dataProvider = value;
 			
-			var collection:IList;
-			
-			if (value is IList) {
-				collection = value;
-			} else if (value is Array) {
-				collection = new ArrayList(value);
+			if (value) {
+				collectionView = new ListCollectionView(value);
+				if (_filterFunction != null)
+					collectionView.filterFunction = _filterFunction;
+				if (_sort != null)
+					collectionView.sort = _sort;
+				collectionView.refresh();
+				collectionView.addEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeHandler, false, 0, true);
 			} else {
-				collection = new ArrayList();
-				for each (var item:* in value) {
-					collection.addItem(item);
-				}
+				collectionView = null;
 			}
 			
-			collectionView = new ListCollectionView(collection);
-			if (_filterFunction != null)
-				collectionView.filterFunction = _filterFunction;
-			if (_sort != null)
-				collectionView.sort = _sort;
-			collectionView.refresh();
-			collectionView.addEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeHandler, false, 0, true);
-			
 			invalidateList();
+		}
+		
+		/**
+		 * Returns the item in the group with the given data.
+		 */
+		public function getElementWithData(data:*):IVisualElement {
+			return componentDict[data] as IVisualElement;
 		}
 		
 		/**

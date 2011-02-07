@@ -58,6 +58,10 @@ package {
 	import com.nbilyk.xml.XMLUtilsSparkManifest_4_1;
 	
 	import de.polygonal.core.ObjectPool;
+	
+	import ws.tink.spark.containers.Form;
+	import ws.tink.spark.containers.FormItem;
+	import ws.tink.spark.skins.containers.FormItemSkin;
 
 	public class NBFlexLibClasses {
 		BetterFormItem;
@@ -118,5 +122,9 @@ package {
 		ObjectPool;
 		XMLUtils;
 		XMLUtilsSparkManifest_4_1;
+		
+		Form;
+		FormItem;
+		FormItemSkin;
 	}
 }

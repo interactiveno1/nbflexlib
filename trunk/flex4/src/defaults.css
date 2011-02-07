@@ -1,6 +1,7 @@
 @namespace nbilyk "http://www.nbilyk.com/2009";
 @namespace s "library://ns.adobe.com/flex/spark";
 @namespace mx "library://ns.adobe.com/flex/mx";
+@namespace tink "ws.tink.spark.containers.*";
 
 nbilyk|DebugPanel {
 	background-color: black;
@@ -29,4 +30,13 @@ nbilyk|MessageNotifier {
 
 s|TextArea.richTextEditor {
 	skin-class: ClassReference("com.nbilyk.skins.NRichTextEditorSkin");
+}
+
+tink|FormItem {
+	skin-class: ClassReference("ws.tink.spark.skins.containers.FormItemSkin");
+	padding-left: 5;
+	padding-top: 1;
+	padding-right: 5;
+	padding-bottom: 1;
+	label-vertical-align: middle;
 }
