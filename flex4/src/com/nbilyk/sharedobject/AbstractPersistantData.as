@@ -23,7 +23,7 @@ package com.nbilyk.sharedobject {
 		
 		public function AbstractPersistantData(cookieName:String, autoFetch:Boolean = false) {
 			var className:String = getQualifiedClassName(this); 
-			if (Class(getDefinitionByName(className)) == AbstractPersistantData) throw new Error('AbstractPersistantData must be extended');
+			if (Class(getDefinitionByName(className)) == AbstractPersistantData) throw new Error("AbstractPersistantData must be extended");
 			if (!cookieName) throw new ArgumentError("Argument cookieName is required.");
 			
 			_cookieName = cookieName;
