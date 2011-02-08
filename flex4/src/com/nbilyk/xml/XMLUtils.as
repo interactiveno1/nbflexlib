@@ -173,6 +173,7 @@ package com.nbilyk.xml {
 		}
 
 		private static function internalMarshall(object:*, useCache:Boolean, ignoreTransient:Boolean, ref:Dictionary, root:XML):XML {
+			if (object == null) return null;
 			var xml:XML = <_/>;
 			var qualifiedClassName:String = getQualifiedClassName(object);
 			var isVector:Boolean = qualifiedClassName.indexOf(VECTOR) === 0;;
@@ -248,11 +249,13 @@ package com.nbilyk.xml {
 				var n:uint = list.length;
 				for (var i:uint = 0; i < n; i++) {
 					item = list.getItemAt(i);
+					if (item == null) continue;
 					childXml = internalMarshall(item, useCache, ignoreTransient, ref, root);
 					xml.appendChild(childXml);
 				}
 			} else if (object is Array || isVector) {
 				for each (item in object) {
+					if (item == null) continue;
 					childXml = internalMarshall(item, useCache, ignoreTransient, ref, root);
 					xml.appendChild(childXml);
 				}
@@ -266,18 +269,21 @@ package com.nbilyk.xml {
 				var properties:XMLList = typeXml.children().((name() == "accessor" && @access == "readwrite") || name() == "variable");
 				for each (var property:XML in properties) {
 					if (ignoreTransient && property.metadata.(@name == "Transient").length() > 0) continue;
-					var propName:String = property.@name;
-					item = object[propName];
-					childXml = internalMarshall(item, useCache, ignoreTransient, ref, root);
-					
-					var complexChildXml:XML = <{propName}/>;
-					if (ns) complexChildXml.setNamespace(ns);
-					if (childXml.hasComplexContent()) {
-						complexChildXml.appendChild(childXml);
-					} else {
-						complexChildXml.appendChild(childXml.text());
+					var childName:String = property.@name;
+					var childType:String = property.@type;
+					item = object[childName];
+					var propertyXml:XML = <{childName}/>;
+					if (ns) propertyXml.setNamespace(ns);
+					if (item != null) {
+						childXml = internalMarshall(item, useCache, ignoreTransient, ref, root);
+
+						if (IGNORE_TYPES.indexOf(childType) != -1 || PRIMITIVE_TYPES.indexOf(childType) != -1) {
+							propertyXml.appendChild(childXml.text());
+						} else {
+							propertyXml.appendChild(childXml);
+						}
 					}
-					xml.appendChild(complexChildXml)
+					xml.appendChild(propertyXml)
 				}
 			}
 			return xml;
