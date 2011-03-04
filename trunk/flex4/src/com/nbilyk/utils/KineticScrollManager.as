@@ -120,6 +120,7 @@ package com.nbilyk.utils {
 
 			var currPoint:Point = new Point(target.stage.mouseX, target.stage.mouseY);
 			var currTime:int = getTimer();
+			if (currTime - firstTime < 2) return;
 			var firstPoint:Point = previousPoints[0];
 			var firstTime:int = previousTimes[0];
 			var diff:Point = currPoint.subtract(firstPoint);
