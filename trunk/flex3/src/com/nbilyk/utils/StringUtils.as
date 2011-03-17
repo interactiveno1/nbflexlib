@@ -3,6 +3,9 @@
  */
 package com.nbilyk.utils {
 	import flash.display.DisplayObject;
+	import flash.xml.XMLDocument;
+	import flash.xml.XMLNode;
+	import flash.xml.XMLNodeType;
 
 	public class StringUtils {
 
@@ -159,6 +162,20 @@ package com.nbilyk.utils {
 			}
 
 			return crc;
+		}
+
+		/**
+		 * http://www.razorberry.com/blog/archives/2007/11/02/converting-html-entities-in-as3/
+		 */
+		public static function htmlUnescape(str:String):String {
+			return new XMLDocument(str).firstChild.nodeValue;
+		}
+
+		/**
+		 * http://www.razorberry.com/blog/archives/2007/11/02/converting-html-entities-in-as3/
+		 */
+		public static function htmlEscape(str:String):String {
+			return XML(new XMLNode(XMLNodeType.TEXT_NODE, str)).toXMLString();
 		}
 
 	}

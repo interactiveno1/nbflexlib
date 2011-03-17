@@ -39,7 +39,7 @@ package com.nbilyk.utils {
 		 * Gets the queue's index of where an item with [priority] should go.
 		 */
 		protected function getPriorityIndex(priority:int):uint {
-			var index:uint = length;
+			var index:uint = _events.length;
 			if (index == 0) return 0;
 			while (index > 0 && (_events[index - 1] as QueuedEvent).priority < priority) index--;
 			return index;
@@ -75,7 +75,7 @@ package com.nbilyk.utils {
 			_currentEvent = null;
 		}
 		protected function doNextEvent():void {
-			if (length == 0) return;
+			if (_events.length == 0) return;
 			
 			var evt:Event = new Event(NEXT_EVENT);
 			dispatchEvent(evt);
